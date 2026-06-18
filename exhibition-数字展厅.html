@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字展厅 - 中国古典建筑电子博物馆</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.css">
+    <script src="chatbot-intelligent.js"></script>
+    <script src="data-miner.js"></script>
+    <script src="dynamic-knowledge-base.js"></script>
+    <script src="web-search.js"></script>
+    <style>
+        body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: #f9fafb; }
+        .card-hover { transition: 0.3s; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.08); }
+        .title-line { width: 60px; height: 3px; background: #92400e; }
+        .chatbot-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
+        .chatbot-toggle { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #92400e, #d97706); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(146, 64, 14, 0.4); transition: transform 0.3s; }
+        .chatbot-toggle:hover { transform: scale(1.1); }
+        .chatbot-toggle i { color: white; font-size: 24px; }
+        .chatbot-window { position: absolute; bottom: 80px; right: 0; width: 380px; max-height: 550px; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); display: none; flex-direction: column; overflow: hidden; }
+        .chatbot-window.active { display: flex; }
+        .chatbot-header { background: linear-gradient(135deg, #92400e, #d97706); padding: 20px; color: white; display: flex; align-items: center; gap: 12px; }
+        .digital-avatar { width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; border: 2px solid rgba(255,255,255,0.4); }
+        .digital-avatar i { font-size: 24px; }
+        .chatbot-content { flex: 1; overflow-y: auto; padding: 20px; max-height: 400px; }
+        .chat-message { margin-bottom: 16px; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .chat-message.bot { display: flex; gap: 10px; }
+        .chat-message.bot .avatar { width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #92400e, #d97706); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; }
+        .chat-message.user { display: flex; justify-content: flex-end; }
+        .chat-input-area { border-top: 1px solid #e5e7eb; padding: 12px; background: #f9fafb; display: flex; gap: 8px; align-items: center; }
+        .chat-input { flex: 1; padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 25px; outline: none; transition: border-color 0.2s; font-size: 14px; }
+        .chat-input:focus { border-color: #d97706; }
+        .chat-input::placeholder { color: #9ca3af; }
+        .send-btn { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #92400e, #d97706); border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+        .send-btn:hover { transform: scale(1.1); }
+        #voiceInputBtn { transition: all 0.3s; }
+        #voiceInputBtn.listening { animation: voicePulse 1.2s ease-in-out infinite; background: #dc2626 !important; }
+        @keyframes voicePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.5); } 50% { box-shadow: 0 0 0 14px rgba(220,38,38,0); } }
+    </style>
+</head>
+<body>
+
+<header class="bg-stone-900 text-white sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-building-columns text-2xl text-amber-500"></i>
+            <span class="text-xl font-bold">中国古典建筑电子博物馆</span>
+        </div>
+        <nav class="hidden md:flex gap-8">
+            <a href="index.html" class="hover:text-amber-400 transition">首页</a>
+            <a href="knowledge-建筑知识.html" class="hover:text-amber-400 transition">建筑知识</a>
+            <a href="shuzitujian-数字图鉴.html" class="hover:text-amber-400 transition">代表建筑</a>
+            <a href="exhibition-数字展厅.html" class="text-amber-400 font-medium">数字展厅</a>
+            <a href="3d-building.html" class="hover:text-amber-400 transition">3D课堂</a>
+            <a href="quiz-challenge-闯关测验.html" class="hover:text-amber-400 transition">闯关测验</a>
+            <a href="aboutus-关于我们.html" class="hover:text-amber-400 transition">关于我们</a>
+        </nav>
+    </div>
+</header>
+
+<section class="relative h-64 bg-cover bg-center flex items-center justify-center text-white" style="background-image: url('图片/颐和园-2.jpg');">
+    <div class="absolute w-full h-full bg-black/50"></div>
+    <div class="relative z-10 text-center px-4">
+        <h1 class="text-4xl md:text-5xl font-bold mb-2">数字展厅</h1>
+        <p class="text-lg opacity-90">沉浸式体验 · 云端看建筑</p>
+    </div>
+</section>
+
+<main class="max-w-7xl mx-auto px-4 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <a href="exhibition-gugong.html" class="card-hover bg-white rounded-2xl overflow-hidden shadow">
+            <div class="relative">
+                <img src="图片/故宫-1.png" class="w-full h-64 object-cover" alt="故宫数字展厅">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                <div class="absolute bottom-4 left-4 text-white">
+                    <h3 class="text-2xl font-bold mb-1"><i class="fa-solid fa-crown mr-2"></i>故宫数字展厅</h3>
+                    <p class="text-sm opacity-90">紫禁城全景 · 航拍视角 · 历史讲解</p>
+                </div>
+            </div>
+        </a>
+        <a href="exhibition-garden.html" class="card-hover bg-white rounded-2xl overflow-hidden shadow">
+            <div class="relative">
+                <img src="图片/拙政园-1.jpg" class="w-full h-64 object-cover" alt="江南园林数字展厅">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                <div class="absolute bottom-4 left-4 text-white">
+                    <h3 class="text-2xl font-bold mb-1"><i class="fa-solid fa-leaf mr-2"></i>江南园林数字展厅</h3>
+                    <p class="text-sm opacity-90">拙政园 · 留园 · 苏州园林航拍</p>
+                </div>
+            </div>
+        </a>
+        <a href="exhibition-religion.html" class="card-hover bg-white rounded-2xl overflow-hidden shadow">
+            <div class="relative">
+                <img src="图片/长城-1.jpeg" class="w-full h-64 object-cover" alt="防御与工程建筑数字展厅">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                <div class="absolute bottom-4 left-4 text-white">
+                    <h3 class="text-2xl font-bold mb-1"><i class="fa-solid fa-shield-halved mr-2"></i>防御与工程建筑数字展厅</h3>
+                    <p class="text-sm opacity-90">万里长城 · 防御工事 · 水利工程</p>
+                </div>
+            </div>
+        </a>
+        <a href="exhibition-folk.html" class="card-hover bg-white rounded-2xl overflow-hidden shadow">
+            <div class="relative">
+                <img src="图片/土楼-1.jpg" class="w-full h-64 object-cover" alt="民居建筑数字展厅">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                <div class="absolute bottom-4 left-4 text-white">
+                    <h3 class="text-2xl font-bold mb-1"><i class="fa-solid fa-house-chimney mr-2"></i>民居建筑数字展厅</h3>
+                    <p class="text-sm opacity-90">福建土楼 · 四合院 · 长江观音阁</p>
+                </div>
+            </div>
+        </a>
+    </div>
+</main>
+
+<footer class="bg-stone-900 text-white py-8 text-center">
+    <p>© 2025 中国古典建筑电子博物馆 版权所有</p>
+    <p class="text-gray-400 text-sm mt-2">传承中华建筑文化 · 数字博物馆</p>
+</footer>
+
+<!-- 数字人聊天机器人 -->
+<div class="chatbot-container">
+    <button id="chatbotToggleBtn" onclick="toggleChatWindow()" style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#92400e,#d97706);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 15px rgba(146,64,14,0.4);transition:transform 0.3s;border:none;position:fixed;bottom:20px;right:20px;z-index:1000;">
+        <i class="fa-solid fa-comments" style="color:white;font-size:24px;"></i>
+    </button>
+
+    <div id="chatbotWindow" style="position:fixed;bottom:90px;right:20px;width:380px;max-height:550px;background:white;border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,0.15);display:none;flex-direction:column;overflow:hidden;z-index:1000;">
+        <div style="background:linear-gradient(135deg,#92400e,#d97706);padding:20px;color:white;display:flex;align-items:center;gap:12px;">
+            <div style="width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.4);">
+                <i class="fa-solid fa-robot" style="font-size:24px;"></i>
+            </div>
+            <div>
+                <h3 style="font-weight:bold;font-size:18px;margin:0;">智能学习小助手</h3>
+                <p style="font-size:12px;opacity:0.8;margin:0;">您好，我是您的智能建筑顾问</p>
+            </div>
+        </div>
+
+        <div id="chatbotContent" style="flex:1;overflow-y:auto;padding:20px;max-height:400px;">
+            <div class="chat-message bot" style="margin-bottom:16px;display:flex;align-items:flex-start;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#92400e,#d97706);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="fa-solid fa-robot" style="color:white;font-size:16px;"></i>
+                </div>
+                <div style="background:#f3f4f6;padding:12px 16px;border-radius:18px 18px 18px 4px;max-width:80%;">
+                    您好！我是智能学习小助手，很高兴为您解答关于中国传统建筑的各种问题。
+                </div>
+            </div>
+        </div>
+
+        <div style="border-top:1px solid #e5e7eb;padding:12px;background:#f9fafb;">
+            <div style="display:flex;gap:8px;">
+                <input type="text" id="chatInput" placeholder="输入您的问题..." style="flex:1;padding:12px 16px;border:1px solid #d1d5db;border-radius:24px;outline:none;font-size:14px;pointer-events:auto;">
+                <button id="voiceInputBtn" onclick="toggleVoiceInput()" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#92400e,#d97706);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;flex-shrink:0;">
+                    <i class="fa-solid fa-microphone" style="color:white;font-size:18px;"></i>
+                </button>
+                <button onclick="chatSend()" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#92400e,#d97706);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;flex-shrink:0;">
+                    <i class="fa-solid fa-paper-plane" style="color:white;"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ===== 页面加载时立即清理 localStorage 中的垃圾数据 =====
+    (function(){try{var d=localStorage.getItem('chatbot_user_learned');if(d){var a=JSON.parse(d);var g=['微软','Microsoft','microsoft','年报','Annual Report','NASDAQ','SEC','Form 10-K','财年','董事会','股东','shareholder','LinkedIn','GitHub','社招','校招','招聘'];var changed=false;for(var i=a.length-1;i>=0;i--){if(a[i]&&a[i].length>=2){var ans=a[i][1]||'';for(var j=0;j<g.length;j++){if(ans.indexOf(g[j])!==-1){console.warn('[启动清理] 删除被污染的知识:',a[i][0]);a.splice(i,1);changed=true;break;}}}}if(changed){localStorage.setItem('chatbot_user_learned',JSON.stringify(a));console.log('[启动清理] 完成，剩余:',a.length,'条');}}}catch(e){}})();
+
+    // ========== 同义词映射表：将用户输入中的词汇展开为其所有同义形式 ==========
+    const synonymMap = {
+        '故宫': ['故宫','紫禁城','北京故宫','明清皇宫','故宫博物院'],
+        '紫禁城': ['紫禁城','故宫','北京故宫','明清皇宫'],
+        '长城': ['长城','万里长城','明长城','边墙'],
+        '园林': ['园林','庭院','花园','园囿','景观'],
+        '斗拱': ['斗拱','斗栱','斗','栱','铺作'],
+        '斗栱': ['斗栱','斗拱','斗','栱','铺作'],
+        '榫卯': ['榫卯','榫','卯','木工连接','榫接'],
+        '宫殿': ['宫殿','皇宫','王宫','皇家建筑','宫','殿'],
+        '民居': ['民居','民宅','住宅','居住建筑','住房','住所','房子'],
+        '屋顶': ['屋顶','房顶','屋盖','顶','屋面'],
+        '建造': ['建造','修建','建设','修筑','兴建','盖'],
+        '防御': ['防御','防卫','城防','防守','军事'],
+        '修建': ['修建','建造','建设','修筑','兴建','盖'],
+        '盖': ['盖','建造','修建','建设','修筑','兴建'],
+        '建': ['建','建造','修建','建设','修筑','兴建'],
+        '美': ['美','漂亮','好看','美观','精美'],
+        '大': ['大','宏伟','庞大','巨大','宏大','壮观'],
+        '年代': ['年代','时代','朝代','时期','历史'],
+    };
+
+    // 展开查询：将用户输入中的词替换为包含所有同义形式的扩展文本
+    function expandQuery(query) {
+        var result = query;
+        var keys = Object.keys(synonymMap);
+        keys.sort(function(a, b) { return b.length - a.length; }); // 长词优先替换
+        for (var i = 0; i < keys.length; i++) {
+            var k = keys[i];
+            if (result.indexOf(k) !== -1) {
+                // 在结果末尾追加同义词（保留原词，追加扩展）
+                var synonyms = synonymMap[k];
+                for (var j = 0; j < synonyms.length; j++) {
+                    if (result.indexOf(synonyms[j]) === -1) {
+                        result += ' ' + synonyms[j];
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    // 默认问答数据库（每条 8-15 个关键词，全面覆盖各种问法）
+    const qaDatabase = [
+        {
+            keywords: ['斗拱', '斗栱', '铺作', '斗拱作用', '斗拱功能', '斗拱用途', '斗拱是干什么的', '斗拱有什么用', '斗拱的作用是什么', '斗拱有什么功能', '斗拱的功能有哪些', '斗拱干嘛用', '斗拱干什么', '斗拱是干嘛的'],
+            answer: '斗拱具有多重作用：1) 承重，将屋面荷载传递到柱子；2) 装饰，体现建筑等级和美学；3) 防震，通过榫卯连接的弹性减少地震对建筑的影响；4) 调节比例，使建筑外观更协调美观。'
+        },
+        {
+            keywords: ['斗拱结构', '斗拱组成', '斗拱什么结构', '斗拱是什么样的', '斗拱的构造', '斗拱怎么构成的', '斗拱由什么组成', '斗','栱','斗和栱'],
+            answer: '斗拱由"斗"和"拱"组成：斗是方形木块，用于承托上面的构件；拱是弓形短木，横向或纵向放置。两者通过榫卯连接，层层叠加，形成稳定的结构体系。根据位置和功能，斗拱有多种类型，如柱头科、平身科、角科等。'
+        },
+        {
+            keywords: ['宫殿', '皇宫', '王宫', '皇家建筑', '宫殿建筑', '宫殿特点', '宫殿特色', '宫殿风格', '宫殿是怎样的', '宫殿有什么特点', '宫殿的样式', '皇家建筑特点', '皇宫特征', '古代宫殿什么样'],
+            answer: '宫殿建筑是中国古代皇家建筑的最高形式。特点包括：1) 中轴对称布局，体现皇权至上；2) 黄色琉璃瓦屋顶，象征皇室尊贵；3) 斗拱飞檐，雕梁画栋；4) 大量使用吉祥图案，如龙、凤、祥云等；5) 规模宏大，气势恢宏。著名的宫殿建筑有故宫、沈阳故宫、承德避暑山庄等。'
+        },
+        {
+            keywords: ['著名宫殿', '中国宫殿', '哪些宫殿', '宫殿名称', '著名皇宫', '有哪些皇宫', '列举宫殿', '中国有哪些宫殿', '古代宫殿列表', '知名宫殿'],
+            answer: '中国著名的宫殿包括：1) 北京故宫，明清两朝皇宫；2) 沈阳故宫，清初皇宫；3) 承德避暑山庄，清代皇帝夏宫；4) 阿房宫，秦朝著名宫殿（已毁）；5) 大明宫，唐朝皇宫（已毁）；6) 未央宫，汉朝皇宫（已毁）。'
+        },
+        {
+            keywords: ['建筑材料', '古建筑材料', '主要材料', '建筑材料有哪些', '用什么材料', '传统建材', '建筑用了什么', '材料种类', '建材有哪些', '古代建筑材料', '用什么建造'],
+            answer: '中国传统建筑主要使用：1) 木材，作为主要结构材料；2) 砖瓦，用于墙体和屋面；3) 石材，用于基础、台阶和装饰；4) 土，用于夯土墙和窑洞；5) 竹材，用于南方地区建筑；6) 灰浆，使用石灰、糯米浆等作为粘合剂。'
+        },
+        {
+            keywords: ['木材', '木头', '木料', '为什么用木头', '木结构', '为什么是木建筑', '用木头的原因', '古代建筑为什么是木的', '木质建筑', '木建筑优势', '用木材的好处'],
+            answer: '古代建筑使用木材的原因包括：1) 中国森林资源丰富；2) 木材易于加工；3) 木结构抗震性能好；4) 木材有温暖的触感，符合中国人的审美；5) 木材象征着生机和成长。'
+        },
+        {
+            keywords: ['屋顶', '房顶', '屋盖', '屋顶形式', '屋顶类型', '屋顶样式', '有哪些屋顶', '屋顶种类', '屋顶有几种', '什么顶', '顶的样式', '中国屋顶', '古代屋顶', '古建屋顶'],
+            answer: '中国传统建筑屋顶形式多样，主要包括：1) 庑殿顶，最高等级，用于重要宫殿；2) 歇山顶，用于次要宫殿和庙宇；3) 硬山顶，用于普通民居；4) 悬山顶，用于南方民居；5) 攒尖顶，用于亭、塔等建筑。屋脊上常有脊兽装饰。'
+        },
+        {
+            keywords: ['庑殿顶', '庑殿', '最高屋顶', '最高等级屋顶', '四坡顶', '什么是庑殿顶', '庑殿顶是什么', '庑殿顶长什么样', '皇家屋顶', '太和殿屋顶', '重檐庑殿顶'],
+            answer: '庑殿顶是中国传统建筑的最高等级屋顶形式，由四个倾斜的坡面组成，四角各有垂脊，顶部有正脊。庑殿顶庄重大气，通常用于皇宫、庙宇等最重要的建筑，如太和殿就是典型的庑殿顶。'
+        },
+        {
+            keywords: ['歇山顶', '歇山', '什么是歇山顶', '歇山顶特点', '歇山顶什么样', '歇山顶和庑殿顶', '次等屋顶'],
+            answer: '歇山顶是仅次于庑殿顶的第二等级屋顶形式，由一条正脊、四条垂脊和四条戗脊组成，共有九条屋脊。歇山顶造型活泼，常用于寺庙、王府等重要建筑，如天安门城楼就是歇山顶。'
+        },
+        {
+            keywords: ['民居', '民宅', '住宅', '民居类型', '民居种类', '民居建筑', '有哪些民居', '居住建筑', '住宅类型', '中国民居', '各地民居', '民居有哪些'],
+            answer: '中国民居建筑因地而异，主要类型有：北方四合院、南方天井式民居、山区吊脚楼、黄土高原窑洞、客家土楼、徽派建筑（马头墙）、蒙古包、傣族竹楼、藏族碉房等。这些民居都体现了当地人民与自然环境的和谐共处。'
+        },
+        {
+            keywords: ['四合院', '北京四合院', '北方民居', '院子', '院落', '什么是四合院', '四合院特点', '四合院的样子', '四合院有什么特点', '四合院介绍', '四合院是什么', '北京院子'],
+            answer: '四合院是中国北方传统的民居形式，由正房、东西厢房、倒座房围合而成，中间是天井。四合院的特点包括：封闭独立，便于家族生活；坐北朝南，采光充足；有明确的等级秩序；冬暖夏凉，适合北方气候。'
+        },
+        {
+            keywords: ['徽派建筑', '徽州建筑', '马头墙', '白墙黑瓦', '安徽建筑', '徽式建筑', '徽派特色', '徽派风格', '江南建筑', '徽派民居', '什么是徽派建筑', '徽派建筑特点'],
+            answer: '徽派建筑是明清时期徽州地区的传统建筑风格。特点包括：1) 马头墙，防火防风；2) 精美的砖雕、木雕、石雕；3) 白墙黑瓦，色彩素雅；4) 天井布局，通风采光；5) 讲究风水，布局严谨。徽派建筑是中国传统民居的杰出代表。'
+        },
+        {
+            keywords: ['防御', '防御工程', '防御建筑', '军事建筑', '城防', '防卫', '有哪些防御', '军事防御', '古代防御', '防御设施', '古代城防', '古代军事工程'],
+            answer: '中国古代防御工程主要包括：1) 长城，世界最长的防御工程；2) 城墙和城门，如西安古城墙、平遥古城墙；3) 关隘，如山海关、嘉峪关、居庸关等；4) 烽火台，用于传递军情；5) 护城河，围绕城市的水上防御设施。'
+        },
+        {
+            keywords: ['烽火台', '烽火', '烽燧', '古代通讯', '传递信息', '烽火台是什么', '烽火台作用', '烽火台怎么用', '烽火台有什么用途', '古代怎么传递消息', '狼烟'],
+            answer: '烽火台是古代传递军情的军事设施，通常建在山头或视野开阔处。发现敌情时，白天燃烟（狼烟），夜晚举火，通过烽火台网络快速传递信息。烽火台是古代重要的通讯手段，可以昼夜不停地传递军情。'
+        },
+        {
+            keywords: ['关隘', '关口', '著名关隘', '有哪些关', '哪些关隘', '关城', '重要关口', '山海关', '嘉峪关', '居庸关', '雁门关', '中国古代关隘'],
+            answer: '中国著名的关隘包括：1) 山海关，"天下第一关"；2) 嘉峪关，长城西端起点；3) 居庸关，京畿门户；4) 雁门关，"九塞尊崇第一关"；5) 剑门关，蜀道咽喉；6) 娘子关，"天下第九关"等。'
+        },
+        {
+            keywords: ['风水', '建筑风水', '堪舆', '选址', '布局讲究', '风水理论', '看风水', '古代风水', '风水是什么', '建筑讲究', '风水原则'],
+            answer: '风水是中国传统建筑选址和布局的重要考量，强调人与自然环境的和谐。基本原则包括：1) 负阴抱阳，背山面水；2) 山环水抱，藏风聚气；3) 坐北朝南，采光充足。虽然带有一定的迷信色彩，但其中也包含合理的建筑环境选择经验。'
+        },
+        {
+            keywords: ['坐北朝南', '为什么朝南', '建筑朝向', '南向', '面向南方', '为什么坐北朝南', '坐北朝南的原因', '朝向讲究', '房子朝向', '古代建筑朝向'],
+            answer: '坐北朝南的原因包括：1) 采光充足，冬季阳光充足；2) 避风，北方寒风从北方吹来，坐北朝南可以避风；3) 符合风水理论，"负阴抱阳"；4) 等级制度，只有皇帝和重要建筑可以坐北朝南。'
+        },
+        {
+            keywords: ['榫卯', '榫卯结构', '榫', '卯', '木工连接', '榫卯连接', '什么是榫卯', '榫卯是什么意思', '榫卯是什么结构', '木结构连接方式', '不用钉子的建筑'],
+            answer: '榫卯是中国传统木结构建筑的核心连接方式，不用钉子和胶水就能牢固连接。"榫"是凸出的部分，"卯"是凹入的部分，两者紧密结合。榫卯结构是中国古代工匠智慧的结晶，体现了高超的木工技艺。'
+        },
+        {
+            keywords: ['榫卯优点', '榫卯好处', '榫卯特性', '为什么用榫卯', '榫卯抗震', '榫卯不用钉子', '榫卯的优势', '榫卯有什么好的', '榫卯好在哪里'],
+            answer: '榫卯结构的优点包括：1) 结构稳固，抗震性能好；2) 可以适应温度和湿度变化，木材不易开裂；3) 便于拆卸和维修；4) 节省材料，无需钉子和胶水；5) 外观美观，结构精巧。'
+        },
+        {
+            keywords: ['园林建筑', '园林', '庭院', '花园', '园林特点', '园林特色', '园林艺术', '园林风格', '园林是什么', '什么是园林建筑', '造园', '景观建筑', '中国园林'],
+            answer: '园林建筑是中国传统建筑的重要类型，强调"虽由人作，宛自天开"的意境。特点包括：布局自由灵活，不拘泥于对称；运用借景、框景、漏景等手法；有亭、台、楼、阁、廊、榭等多种建筑形式；水景与假山巧妙结合，营造诗情画意的意境。著名园林有苏州拙政园、留园、狮子林等。'
+        },
+        {
+            keywords: ['苏州园林', '苏州', '拙政园', '留园', '狮子林', '网师园', '苏州园', '苏州庭院', '江南园林', '苏州园林特点', '苏州园林特色', '苏州园林介绍', '苏州有什么园林'],
+            answer: '苏州园林是中国古典园林的杰出代表，具有以下特点：1) 布局精巧，以小见大；2) 假山池沼，移步换景；3) 亭台楼阁，错落有致；4) 花木扶疏，四季皆有景。著名的有拙政园、留园、狮子林等。苏州园林被列入世界文化遗产名录。'
+        },
+        {
+            keywords: ['拙政园', '拙政园特点', '拙政园特色', '拙政园介绍', '拙政园是什么样的', '最大的苏州园林', '苏州最大园林'],
+            answer: '拙政园是苏州最大的古典园林，始建于明代正德年间。园名取"拙者之为政"之意。特色包括：以水景取胜，水面占全园五分之三；建筑疏朗，布局自然；"远香堂"、"小飞虹"等景点闻名。拙政园是中国四大名园之一。'
+        },
+        {
+            keywords: ['留园', '留园特色', '留园特点', '冠云峰', '太湖石', '留园介绍', '苏州留园'],
+            answer: '留园位于苏州阊门外，始建于明代，以精致著称。特色包括：冠云峰（太湖石之冠）、涵碧山房等精美建筑；厅堂、楼阁、廊、榭等建筑布局精巧；山、水、石、花木的巧妙搭配，处处成景。留园是中国四大名园之一。'
+        },
+        {
+            keywords: ['四大名园', '中国四大名园', '四大园林', '名园', '有哪些名园', '四大名园有哪四个', '颐和园', '避暑山庄'],
+            answer: '中国四大名园是指：1) 北京颐和园，清朝皇家园林，以昆明湖、万寿山为主；2) 河北承德避暑山庄，清代皇帝夏宫，山水园林并重；3) 苏州拙政园，江南私家园林代表，以水景取胜；4) 苏州留园，小巧精致，以假山池沼闻名。'
+        },
+        {
+            keywords: ['故宫', '北京故宫', '紫禁城', '明清皇宫', '故宫博物院', '北京皇宫', '故宫简介', '故宫介绍', '什么是故宫'],
+            answer: '北京故宫，旧称紫禁城，是明清两代皇家宫殿，位于北京中轴线中心。始建于1406年，占地面积72万平方米，建筑面积约15万平方米，有大小宫殿七十多座，房屋九千余间。故宫是世界上现存规模最大、保存最为完整的木质结构古建筑之一。'
+        },
+        {
+            keywords: ['故宫历史', '故宫年代', '故宫什么时候建', '故宫建于', '故宫建造时间', '故宫建于哪年', '故宫多少年', '故宫建造', '故宫建于什么朝代', '故宫有多少年历史'],
+            answer: '故宫，又称紫禁城，始建于明朝永乐四年（1406年），建成于永乐十八年（1420年），距今已有600多年的历史。故宫占地约72万平方米，拥有宫殿房屋9000余间，是世界上现存规模最大、保存最完整的木质结构古建筑群。'
+        },
+        {
+            keywords: ['故宫面积', '故宫多大', '故宫大小', '故宫占地', '故宫规模', '多少平方米', '面积多少', '故宫有多宽', '故宫长度', '故宫建筑面积'],
+            answer: '故宫占地面积约72万平方米，南北长961米，东西宽753米。故宫建筑面积约15万平方米，拥有宫殿房屋9000余间。'
+        },
+        {
+            keywords: ['故宫建造者', '谁建故宫', '谁下令', '朱棣', '永乐皇帝', '故宫是谁建的', '故宫是谁下令建造的', '故宫的设计者', '故宫谁建造的'],
+            answer: '故宫是明朝皇帝朱棣（永乐皇帝）下令建造的，始建于1406年，于1420年建成。整个工程耗时14年，动用了全国最优秀的工匠和建筑师。'
+        },
+        {
+            keywords: ['紫禁城名字', '为什么叫紫禁城', '故宫叫法', '紫禁城由来', '名称来源', '名字由来', '故宫命名', '紫禁城名称含义'],
+            answer: '"紫"指紫微星垣，象征天帝的居所；"禁"指皇权禁地，普通百姓不得入内。因此故宫被称为紫禁城，寓意这里是天帝之子皇帝的居所。'
+        },
+        {
+            keywords: ['故宫宫门', '故宫门', '午门', '神武门', '东华门', '西华门', '几个门', '有哪些门', '故宫几扇门', '故宫的宫门有哪些'],
+            answer: '故宫有四座宫门：正门为午门（南门），北门为神武门，东门为东华门，西门为西华门。午门是皇帝颁发诏书和举行重要仪式的地方。'
+        },
+        {
+            keywords: ['三大殿', '太和殿', '中和殿', '保和殿', '金銮殿', '故宫三大殿', '三大殿是什么', '三殿', '故宫三殿', '故宫三大殿是哪三个'],
+            answer: '故宫三大殿是指外朝的三大殿：太和殿（金銮殿）、中和殿、保和殿。其中太和殿是故宫最大、最宏伟的宫殿，是皇帝举行即位、大婚等重要仪式的地方。'
+        },
+        {
+            keywords: ['长城', '万里长城', '明长城', '边墙', '长城简介', '长城介绍', '什么是长城', '长城是什么'],
+            answer: '长城是中国古代的军事防御工程，总长度超过2.1万公里。始建于春秋战国时期，秦朝连接各国长城形成"万里长城"，明朝进行了大规模修葺。长城主要由城墙、敌楼、关城、烽火台等组成，1987年被列入世界文化遗产名录。'
+        },
+        {
+            keywords: ['长城长度', '长城多长', '长城总长', '长城里程', '绵延多少', '长多少', '长城有多长', '万里长城多长'],
+            answer: '中国长城总长度超过2.1万公里，其中包括明长城8851.8公里。长城东起河北山海关，西至甘肃嘉峪关，途经15个省、市、自治区。它是世界上最伟大的古代防御工程之一，被誉为"世界第八大奇迹"。'
+        },
+        {
+            keywords: ['长城起点', '山海关', '嘉峪关', '从哪到哪', '起点终点', '东起西至', '长城从哪到哪', '长城的起点在哪里', '万里长城起点终点'],
+            answer: '万里长城东起河北秦皇岛市山海关（被称为"天下第一关"），西至甘肃嘉峪关。明代长城东起鸭绿江边的虎山，西至祁连山麓的嘉峪关，全长8851.8公里。'
+        },
+        {
+            keywords: ['长城历史', '长城年代', '什么时候建', '长城始建于', '长城建造时间', '长城建于', '长城的修建历史'],
+            answer: '长城的修建历史悠久，最早可以追溯到春秋战国时期。秦始皇统一六国后，连接和修缮了各国长城，形成了万里长城。我们现在看到的明长城主要建于1368-1644年的明朝时期。'
+        },
+        {
+            keywords: ['长城作用', '长城功能', '长城用途', '长城干什么', '有什么用', '长城是干嘛的', '建长城是为了什么'],
+            answer: '长城的主要作用包括：1) 军事防御，抵御北方游牧民族的侵扰；2) 边境贸易，控制和管理边贸往来；3) 信息传递，通过烽火台传递军情；4) 疆域界线，标示中原王朝的统治范围。'
+        },
+        {
+            keywords: ['长城建造', '怎么建的', '用什么建的', '长城材料', '建造方法', '修筑方式', '长城怎么建造的', '长城的建造方法'],
+            answer: '长城的建造因地制宜：平原地区用夯土筑墙，山区用石块砌筑，沙漠地区用芦苇和砂土层叠。工人就地取材，用糯米浆、石灰等材料粘合砖石，使墙体坚固耐用。'
+        },
+        {
+            keywords: ['山海关', '嘉峪关', '天下第一关', '长城两端', '山海关和嘉峪关', '长城关口'],
+            answer: '山海关位于长城东端，被誉为"天下第一关"，是东北与中原的重要关隘；嘉峪关位于长城西端，是明代长城的西起点，也是古代丝绸之路的重要关隘。两关都是长城的重要军事要塞。'
+        },
+        {
+            keywords: ['赵州桥', '安济桥', '赵县石桥', '天下第一桥', '隋代石桥', '赵州桥简介', '赵州桥是什么', '赵州桥介绍'],
+            answer: '赵州桥，又称安济桥，位于河北省赵县，是隋代工匠李春设计建造的石拱桥，始建于隋开皇十五年至大业元年（595-605年），距今已有1400多年历史。赵州桥是世界上现存最古老的敞肩式石拱桥，被誉为"天下第一桥"。'
+        },
+        {
+            keywords: ['赵州桥特点', '赵州桥特色', '敞肩拱', '赵州桥结构', '有什么特别', '赵州桥是什么样的', '赵州桥长什么样', '赵州桥有什么特点'],
+            answer: '赵州桥全长50.82米，主拱跨径37.02米，桥宽9.6米。其特点包括：1) 敞肩式拱桥设计，两边各两个小拱；2) 结构精巧，造型优美；3) 经历千年风雨和地震仍完好无损；4) 是世界上现存最古老的敞肩式石拱桥。'
+        },
+        {
+            keywords: ['赵州桥设计者', '谁设计', '李春', '建造者', '谁建的', '赵州桥是谁建的', '赵州桥是谁设计的'],
+            answer: '赵州桥由隋代工匠李春设计建造。李春是河北赵县人，他的设计在当时具有极高的创新性，特别是敞肩式拱桥的设计，比欧洲早了1200多年。'
+        },
+        {
+            keywords: ['赵州桥坚固', '为什么坚固', '赵州桥耐用', '怎么不塌', '抗震', '赵州桥为什么这么坚固', '赵州桥千年不倒'],
+            answer: '赵州桥之所以坚固，原因包括：1) 敞肩式设计减轻了桥身自重；2) 拱形结构分散了压力；3) 采用"并列式砌筑法"，由28道拱圈并列而成，一道损坏不影响其他；4) 桥基建造在坚硬的岩石上，基础稳固。'
+        },
+        {
+            keywords: ['福建土楼', '土楼', '客家土楼', '圆形土楼', '方形土楼', '什么是土楼', '土楼是什么', '客家建筑'],
+            answer: '福建土楼是客家人的独特民居，是东方古代堡垒式建筑的代表。土楼主要分布在福建永定、南靖、华安等地，有圆形和方形两种形状。2008年，福建土楼被列为世界文化遗产。'
+        },
+        {
+            keywords: ['土楼建造', '土楼怎么建', '夯土', '生土', '建造方法', '土楼是如何建造的', '土楼建造方法', '土楼用什么材料'],
+            answer: '福建土楼的建造工艺非常讲究：1) 选址多在山间盆地，讲究风水；2) 用生土、砂石、竹木等天然材料夯筑而成；3) 墙体厚达1-2米，冬暖夏凉；4) 圆形或方形布局，外高内低，具有极强的防御性。土楼被誉为"东方古城堡"。'
+        },
+        {
+            keywords: ['土楼形状', '圆形土楼', '为什么圆形', '为什么是圆的', '土楼为什么建成圆形', '圆的土楼', '土楼是圆的吗'],
+            answer: '土楼建成圆形主要有以下原因：1) 防御优势，从任何角度都可以观察四周；2) 结构均匀，抗震性能好；3) 节约材料，周长相同的情况下圆形面积最大；4) 便于通风采光；5) 体现客家文化中团结和谐的理念。'
+        },
+        {
+            keywords: ['土楼居住', '土楼人口', '住多少人', '多少户', '土楼居民', '可以住多少人', '土楼能住多少', '土楼有多少房间'],
+            answer: '土楼可以容纳数百人居住。大型圆形土楼通常有4-5层，每层有数十个房间，可以容纳几十户人家，几百人共同生活。土楼内部有公共空间，如祠堂、水井等，形成一个相对封闭的社区。'
+        },
+        {
+            keywords: ['著名土楼', '承启楼', '振成楼', '田螺坑', '土楼之王', '有哪些土楼', '土楼名字', '著名土楼有哪些', '四菜一汤'],
+            answer: '著名的福建土楼包括：承启楼（被称为"土楼之王"）、振成楼、田螺坑土楼群（四菜一汤）、河坑土楼群、初溪土楼群等。这些土楼各有特色，是土楼建筑的杰出代表。'
+        },
+        {
+            keywords: ['都江堰', '水利工程', '成都平原', '古代水利', '都江堰是什么', '都江堰介绍', '都江堰简介'],
+            answer: '都江堰是公元前256年秦国蜀郡太守李冰父子主持修建的大型水利工程，距今已有2200多年历史。它位于四川省都江堰市，是世界上最古老且仍在使用的水利工程之一。'
+        },
+        {
+            keywords: ['都江堰原理', '怎么工作', '鱼嘴', '飞沙堰', '宝瓶口', '工作原理', '怎么运作', '都江堰是怎么工作的', '都江堰如何运作'],
+            answer: '都江堰由鱼嘴、飞沙堰、宝瓶口三部分组成：1) 鱼嘴将岷江分为内江和外江，枯水季内江进水，洪水季外江排洪；2) 飞沙堰利用离心力将沙石排入外江；3) 宝瓶口控制进水量。三者巧妙配合，科学解决了防洪、灌溉、排沙等问题。'
+        },
+        {
+            keywords: ['都江堰组成', '都江堰部分', '三部分', '哪些部分', '结构', '都江堰有哪些部分组成', '都江堰的结构'],
+            answer: '都江堰由三个主要部分组成：1) 鱼嘴，将岷江分为内江和外江；2) 飞沙堰，用于排沙泄洪；3) 宝瓶口，引水入川西平原。此外还有百丈堤、人字堤等配套设施。'
+        },
+        {
+            keywords: ['都江堰建造者', '李冰', '谁建都江堰', '都江堰是谁建的', '都江堰创始人'],
+            answer: '都江堰由秦国蜀郡太守李冰父子主持修建。李冰在任期间，根据当地地形和水文条件，设计并建造了这一伟大的水利工程，造福成都平原两千多年。'
+        },
+        {
+            keywords: ['布达拉宫', '西藏', '拉萨', '藏式建筑', '西藏宫殿', '藏族建筑', '布达拉宫介绍', '西藏布达拉宫'],
+            answer: '布达拉宫位于西藏拉萨，是世界上海拔最高、最宏伟的宫殿，始建于公元7世纪松赞干布时期。主体建筑分白宫和红宫，高13层，气势雄伟。布达拉宫是藏传佛教圣地和藏式建筑巅峰之作。'
+        }
+    ];
+    // 初始化 chatbot
+    const qaQuestions = qaDatabase.map(item => item.keywords[0]);
+    const qaAnswers = qaDatabase.map(item => item.answer);
+    chatbot.initialize(qaQuestions, qaAnswers);
+    console.log('chatbot 知识库已初始化，共 ' + qaQuestions.length + ' 条问答');
+
+    // 预置对话
+    const presetConversations = [
+        { question: '你太棒了', answer: '谢谢你！' },
+        { question: '你真棒', answer: '谢谢你！' },
+        { question: '太厉害了', answer: '谢谢你！' },
+        { question: '回答正确', answer: '谢谢你！' },
+        { question: '说对了', answer: '谢谢你！' },
+        { question: '谢谢你', answer: '不客气！' },
+        { question: '谢谢', answer: '不客气！' },
+        { question: '你好', answer: '你好！我是中国古代建筑知识助手，有什么我可以帮你的吗？' },
+        { question: '你好啊', answer: '你好！很高兴见到你，有什么想了解的建筑知识吗？' },
+        { question: '你是谁', answer: '我是中国古代建筑电子博物馆的智能助手，专门为你介绍中国古代建筑的知识！' },
+        { question: '你是谁呀', answer: '我是建筑知识助手，可以帮你了解各种中国古代建筑的特点和历史！' },
+        { question: '再见', answer: '再见！欢迎你下次再来学习！' },
+        { question: '拜拜', answer: '拜拜！祝你生活愉快！' }
+    ];
+    // ========== 语音输入 ==========
+    var voiceRecognition = null;
+    var isListening = false;
+
+    function toggleVoiceInput() {
+        var btn = document.getElementById('voiceInputBtn');
+        var icon = btn.querySelector('i');
+
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert('抱歉，您的浏览器不支持语音输入功能。请使用 Chrome 或 Edge 浏览器。');
+            return;
+        }
+
+        if (isListening) {
+            stopVoiceInput();
+            return;
+        }
+
+        var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        voiceRecognition = new SR();
+        voiceRecognition.lang = 'zh-CN';
+        voiceRecognition.interimResults = false;
+        voiceRecognition.continuous = false;
+        voiceRecognition.maxAlternatives = 1;
+
+        voiceRecognition.onstart = function() {
+            isListening = true;
+            btn.classList.add('listening');
+            icon.className = 'fa-solid fa-microphone-lines';
+            document.getElementById('chatInput').placeholder = '正在聆听...';
+        };
+
+        voiceRecognition.onresult = function(event) {
+            var text = event.results[0][0].transcript.trim();
+            if (text) {
+                document.getElementById('chatInput').value = text;
+                setTimeout(function() { chatSend(); }, 300);
+            }
+        };
+
+        voiceRecognition.onerror = function(event) {
+            console.log('语音识别错误:', event.error);
+            if (event.error === 'not-allowed') {
+                addChatMessage('请允许麦克风权限后重试语音输入。', false);
+            }
+            stopVoiceInput();
+        };
+
+        voiceRecognition.onend = function() {
+            stopVoiceInput();
+        };
+
+        voiceRecognition.start();
+    }
+
+    function stopVoiceInput() {
+        isListening = false;
+        var btn = document.getElementById('voiceInputBtn');
+        var icon = btn.querySelector('i');
+        btn.classList.remove('listening');
+        icon.className = 'fa-solid fa-microphone';
+        document.getElementById('chatInput').placeholder = '输入您的问题...';
+        if (voiceRecognition) {
+            try { voiceRecognition.stop(); } catch(e) {}
+        }
+    }
+
+    // 切换聊天窗口
+    function toggleChatWindow() {
+        const chatWindow = document.getElementById('chatbotWindow');
+        if (chatWindow.style.display === 'none' || chatWindow.style.display === '') {
+            chatWindow.style.display = 'flex';
+        } else {
+            chatWindow.style.display = 'none';
+        }
+    }
+    // 添加消息到聊天界面
+    function addChatMessage(text, isUser = false) {
+        const content = document.getElementById('chatbotContent');
+        const msgDiv = document.createElement('div');
+        msgDiv.style.cssText = 'margin-bottom:16px;display:flex;align-items:flex-start;gap:10px;';
+        
+        if (isUser) {
+            msgDiv.innerHTML = '<div style="flex:1;"></div><div style="background:#d97706;color:white;padding:12px 16px;border-radius:18px 18px 4px 18px;max-width:80%;">' + text + '</div>';
+        } else {
+            msgDiv.innerHTML = '<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#92400e,#d97706);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-robot" style="color:white;font-size:16px;"></i></div><div style="background:#f3f4f6;padding:12px 16px;border-radius:18px 18px 18px 4px;max-width:80%;">' + text + '</div>';
+        }
+        content.appendChild(msgDiv);
+        content.scrollTop = content.scrollHeight;
+    }
+    // 发送消息
+    var waitingForAnswer = null;
+    var lastAskedQuestion = null; // 记住上一次用户问的问题
+    var lastSearchResult = null;  // 最近一次网络搜索结果
+    var lastSearchQuestion = null; // 最近一次网络搜索的问题
+    window._pendingConfirmQuestion = null; // 待确认的问题
+    window._pendingConfirmAnswer = null;   // 待确认的答案
+
+    // 获取用户学习的知识（从localStorage）
+    function getUserLearnedAnswers() {
+        try {
+            const saved = localStorage.getItem('chatbot_user_learned');
+            if (saved) {
+                var parsed = JSON.parse(saved);
+                console.log('[知识库读取] 从 localStorage 加载了 ' + parsed.length + ' 条用户知识');
+                // 验证数据格式
+                if (!Array.isArray(parsed)) {
+                    console.error('[知识库错误] 数据格式错误（不是数组），重置为空');
+                    return [];
+                }
+                return parsed;
+            } else {
+                console.log('[知识库读取] localStorage 中无数据');
+            }
+        } catch (e) {
+            console.error('[知识库错误] JSON 解析失败:', e.message, '原始数据:', (localStorage.getItem('chatbot_user_learned') || '').substring(0, 100));
+            // 尝试修复：清除损坏的数据
+            try { localStorage.removeItem('chatbot_user_learned'); } catch(e2) {}
+        }
+        return [];
+    }
+
+    // 保存用户学习的知识（到localStorage + 云端）
+    function saveUserLearned(question, answer) {
+        try {
+            // 垃圾内容检测
+            var garbagePatterns = ['微软','Microsoft','microsoft','年报','Annual Report','NASDAQ','SEC','Form 10-K','财年','董事会','股东','shareholder','LinkedIn','GitHub','社招','校招','招聘'];
+            var isBad = false;
+            for (var gi = 0; gi < garbagePatterns.length; gi++) {
+                if (answer.indexOf(garbagePatterns[gi]) !== -1) { isBad = true; break; }
+            }
+            if (isBad) { console.warn('[阻止存储] 答案含垃圾内容，拒绝保存:', question); return; }
+
+            const learned = getUserLearnedAnswers();
+            // 检查是否已存在
+            const idx = learned.findIndex(item => item[0] === question);
+            if (idx >= 0) {
+                learned[idx][1] = answer;
+                console.log('[知识库存储] 更新已有知识: "' + question + '"');
+            } else {
+                learned.push([question, answer]);
+                console.log('[知识库存储] 新增知识: "' + question + '"');
+            }
+            localStorage.setItem('chatbot_user_learned', JSON.stringify(learned));
+            
+            // === 写入验证：立即读回确认数据已持久化 ===
+            try {
+                var verifyRaw = localStorage.getItem('chatbot_user_learned');
+                var verifyData = JSON.parse(verifyRaw);
+                var found = false;
+                for (var vi = 0; vi < verifyData.length; vi++) {
+                    if (verifyData[vi][0] === question) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) {
+                    console.log('[知识库验证] ✅ 写入确认：共 ' + verifyData.length + ' 条知识');
+                } else {
+                    console.error('[知识库验证] ❌ 写入验证失败！数据未持久化！');
+                }
+            } catch (ve) {
+                console.error('[知识库验证] ❌ 回读失败:', ve.message);
+            }
+
+            // === 同步 chatbot 的内存 Map ===
+            if (typeof chatbot !== 'undefined' && chatbot.userLearned && chatbot.userLearned instanceof Map) {
+                chatbot.userLearned.set(question.trim(), answer.trim());
+                console.log('[chatbot同步] 已同步内存 Map，当前共 ' + chatbot.userLearned.size + ' 条');
+            }
+
+            // 异步同步到云端
+            if (typeof supabaseSaveQA === 'function') {
+                supabaseSaveQA(question, answer);
+            }
+        } catch (e) {
+            console.error('[知识库存储] ❌ 保存失败:', e.message || e);
+        }
+    }
+
+    // ========== 模糊匹配工具函数 ==========
+
+    // 计算编辑距离（Levenshtein Distance），用于衡量两个字符串的差异程度
+    function levenshtein(a, b) {
+        const m = a.length, n = b.length;
+        if (m === 0) return n;
+        if (n === 0) return m;
+        const dp = [];
+        for (let i = 0; i <= m; i++) { dp[i] = [i]; }
+        for (let j = 0; j <= n; j++) { dp[0][j] = j; }
+        for (let i = 1; i <= m; i++) {
+            for (let j = 1; j <= n; j++) {
+                if (a[i - 1] === b[j - 1]) {
+                    dp[i][j] = dp[i - 1][j - 1];
+                } else {
+                    dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+                }
+            }
+        }
+        return dp[m][n];
+    }
+
+    // 基于编辑距离的相似度（0~1，1表示完全相同）
+    function editSimilarity(a, b) {
+        if (!a || !b) return 0;
+        if (a === b) return 1;
+        const maxLen = Math.max(a.length, b.length);
+        return 1 - levenshtein(a, b) / maxLen;
+    }
+
+    // 生成字符级 Bigram 集合（相邻两个字符的组合）
+    function toBigrams(str) {
+        const bigrams = new Set();
+        for (let i = 0; i < str.length - 1; i++) {
+            bigrams.add(str.substring(i, i + 2));
+        }
+        return bigrams;
+    }
+
+    // Dice 系数相似度（基于 Bigram 重叠率，擅长处理词序变化）
+    function diceSimilarity(a, b) {
+        const bga = toBigrams(a);
+        const bgb = toBigrams(b);
+        if (bga.size === 0 && bgb.size === 0) return 0;
+        let intersect = 0;
+        for (const bg of bga) {
+            if (bgb.has(bg)) intersect++;
+        }
+        return (2 * intersect) / (bga.size + bgb.size);
+    }
+
+    // 移除中文停用词和疑问语气词，提取核心关键词
+    function removeStopWords(str) {
+        var stopWords = ['的', '了', '吗', '呢', '吧', '呀', '啊', '么',
+            '什么', '有哪些', '哪些', '怎样', '如何', '为什么', '是不是',
+            '请问', '请', '告诉我', '我想', '知道', '一下', '这个', '那个',
+            '讲讲', '介绍', '说说', '是什么', '什么是', '可以', '能不能', '给我',
+            '帮我', '我', '你', '它', '他', '她', '关于', '有关', '来说',
+            '特点有', '特点是', '具体', '详细', '说明'];
+        var result = str;
+        // 按长度降序排列，优先替换长的停用词
+        stopWords.sort(function (a, b) { return b.length - a.length; });
+        for (var j = 0; j < stopWords.length; j++) {
+            result = result.split(stopWords[j]).join('');
+        }
+        return result.replace(/[，,.。!！?？\s、：:；;（）()「」『』""''【】《》—\-…·~～|/\\]/g, '').trim();
+    }
+
+    // ========== 多策略模糊匹配查找答案 ==========
+    function findAnswerByKeywords(question) {
+        var rawQ = question.toLowerCase().trim();
+        var cleanQ = removeStopWords(rawQ);
+        // 同义词展开：将用户问题中的词替换为包含所有同义形式的扩展文本
+        var expandedQ, expandedClean;
+        try {
+            expandedQ = expandQuery(rawQ);
+            expandedClean = removeStopWords(expandedQ);
+        } catch(e) {
+            console.warn('[检索] expandQuery 失败，使用原始问题:', e.message);
+            expandedQ = rawQ;
+            expandedClean = cleanQ;
+        }
+        var i, j, k, item, keyword, savedQ, score, len;
+
+        console.log('[检索开始] 问题: "' + rawQ + '" → 清洗后: "' + cleanQ + '"');
+
+        // ===== 垃圾答案检测 =====
+        var garbageWords = ['微软','Microsoft','microsoft','年报','Annual Report','NASDAQ','SEC','Form 10-K','财年','董事会','股东','shareholder','LinkedIn','GitHub','社招','校招','招聘'];
+        function isGarbageAnswer(answer) {
+            if (!answer) return true;
+            for (var gi = 0; gi < garbageWords.length; gi++) {
+                if (answer.indexOf(garbageWords[gi]) !== -1) return true;
+            }
+            return false;
+        }
+
+        // ---- 第1层：用户学过的知识，精确匹配 ----
+        var userLearned = getUserLearnedAnswers();
+        console.log('[检索-第1层] 精确匹配，共 ' + userLearned.length + ' 条用户知识');
+        for (i = 0; i < userLearned.length; i++) {
+            savedQ = userLearned[i][0].toLowerCase().trim();
+            if (isGarbageAnswer(userLearned[i][1])) {
+                console.warn('[垃圾过滤] 删除被污染的知识:', savedQ);
+                userLearned.splice(i, 1); i--;
+                try { localStorage.setItem('chatbot_user_learned', JSON.stringify(userLearned)); } catch(e) {}
+                continue;
+            }
+            if (savedQ === rawQ) {
+                console.log('[检索-第1层] ✅ 精确匹配命中: "' + savedQ + '"');
+                return userLearned[i][1];
+            }
+        }
+
+        // ---- 第2层：用户学过的知识，子串匹配 + 模糊匹配 ----
+        console.log('[检索-第2层] 子串/模糊匹配...');
+        for (i = 0; i < userLearned.length; i++) {
+            savedQ = userLearned[i][0].toLowerCase().trim();
+            if (isGarbageAnswer(userLearned[i][1])) {
+                console.warn('[垃圾过滤] 删除被污染的知识:', savedQ);
+                userLearned.splice(i, 1); i--;
+                try { localStorage.setItem('chatbot_user_learned', JSON.stringify(userLearned)); } catch(e) {}
+                continue;
+            }
+            if (rawQ.indexOf(savedQ) !== -1 || savedQ.indexOf(rawQ) !== -1) {
+                console.log('[检索-第2层] ✅ 子串匹配命中: savedQ="' + savedQ + '"');
+                return userLearned[i][1];
+            }
+            // 编辑距离模糊匹配
+            if (savedQ.length >= 3 && cleanQ.length >= 3) {
+                var esim = editSimilarity(cleanQ, savedQ);
+                if (esim >= 0.75) {
+                    console.log('[检索-第2层] ✅ 编辑距离匹配命中 (相似度=' + esim.toFixed(2) + '): savedQ="' + savedQ + '"');
+                    return userLearned[i][1];
+                }
+            }
+        }
+
+        // ---- 辅助函数：检测两个查询是否"同模板不同关键实体" ----
+        // 例如 "沈阳标志性建筑" vs "上海标志性建筑" → 共享"标志性建筑"但城市不同 → true
+        function hasDifferentKeyEntities(q1, q2) {
+            // 1. 找最长公共子串
+            var lcs = '';
+            for (var a = 0; a < q1.length; a++) {
+                for (var b = a + 2; b <= q1.length; b++) {
+                    var sub = q1.substring(a, b);
+                    if (q2.indexOf(sub) !== -1 && sub.length > lcs.length) {
+                        lcs = sub;
+                    }
+                }
+            }
+            // 至少要3字以上的公共部分，且覆盖双方50%以上，才认为是"同模板"
+            if (lcs.length < 3) return false;
+            if (lcs.length / q1.length < 0.5 || lcs.length / q2.length < 0.5) return false;
+            // 2. 提取公共串前后的差异部分
+            var idx1 = q1.indexOf(lcs);
+            var idx2 = q2.indexOf(lcs);
+            var diffBefore1 = q1.substring(0, idx1);
+            var diffBefore2 = q2.substring(0, idx2);
+            var diffAfter1 = q1.substring(idx1 + lcs.length);
+            var diffAfter2 = q2.substring(idx2 + lcs.length);
+            // 3. 如果前面不同且都是>=1字的中文 → 不同关键实体
+            if (diffBefore1 !== diffBefore2 && diffBefore1.length >= 1 && diffBefore2.length >= 1) {
+                // 进一步检查：两个不同的前缀是否都是中文实体名
+                if (/^[\u4e00-\u9fff]+$/.test(diffBefore1) && /^[\u4e00-\u9fff]+$/.test(diffBefore2)) {
+                    return true;
+                }
+            }
+            // 4. 后面不同情况同理
+            if (diffAfter1 !== diffAfter2 && diffAfter1.length >= 1 && diffAfter2.length >= 1) {
+                if (/^[\u4e00-\u9fff]+$/.test(diffAfter1) && /^[\u4e00-\u9fff]+$/.test(diffAfter2)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // ---- 第2.5层：关键词重叠匹配（兜底，防止用户用不同表述问同一问题）----
+        console.log('[检索-第2.5层] 关键词重叠匹配...');
+        // 提取查询的核心词（>=2个连续汉字）
+        var queryWords = [];
+        var qwSeen = {};
+        for (i = 0; i < cleanQ.length - 1; i++) {
+            var w2 = cleanQ.substring(i, i + 2);
+            if (!qwSeen[w2] && /^[\u4e00-\u9fff]{2}$/.test(w2)) {
+                qwSeen[w2] = true;
+                queryWords.push(w2);
+            }
+        }
+        // 也提取3字词
+        for (i = 0; i < cleanQ.length - 2; i++) {
+            var w3 = cleanQ.substring(i, i + 3);
+            if (!qwSeen[w3] && /^[\u4e00-\u9fff]{3}$/.test(w3)) {
+                qwSeen[w3] = true;
+                queryWords.push(w3);
+            }
+        }
+        for (i = 0; i < userLearned.length; i++) {
+            savedQ = userLearned[i][0].toLowerCase().trim();
+            if (isGarbageAnswer(userLearned[i][1])) continue;
+            var savedClean = removeStopWords(savedQ);
+            // ===== 关键实体一致性检查：同模板不同主体则跳过 =====
+            if (hasDifferentKeyEntities(cleanQ, savedClean)) {
+                console.log('[检索-第2.5层] ⛔ 关键实体不同，跳过: "' + cleanQ + '" vs "' + savedClean + '"');
+                continue;
+            }
+            var overlapCount = 0;
+            for (k = 0; k < queryWords.length; k++) {
+                if (savedClean.indexOf(queryWords[k]) !== -1) {
+                    overlapCount++;
+                }
+            }
+            // 至少2个词重叠 且 重叠率 >= 50%
+            if (queryWords.length > 0 && overlapCount >= 2 && (overlapCount / queryWords.length) >= 0.5) {
+                console.log('[检索-第2.5层] ✅ 关键词重叠匹配命中 (重叠=' + overlapCount + '/' + queryWords.length + '): savedQ="' + savedQ + '"');
+                return userLearned[i][1];
+            }
+        }
+
+        // ---- 第3层：预置对话匹配 ----
+        for (i = 0; i < presetConversations.length; i++) {
+            item = presetConversations[i];
+            if (rawQ.indexOf(item.question.toLowerCase()) !== -1 ||
+                item.question.indexOf(rawQ) !== -1) {
+                console.log('[检索-第3层] ✅ 预置对话命中');
+                return item.answer;
+            }
+        }
+
+        // ---- 第4层：知识库多策略模糊匹配（核心） ----
+        var bestMatch = null;
+        var bestScore = 0;
+        var kw, es, ds, sub, x;
+
+        for (i = 0; i < qaDatabase.length; i++) {
+            item = qaDatabase[i];
+            score = 0;
+
+            for (j = 0; j < item.keywords.length; j++) {
+                kw = item.keywords[j].toLowerCase();
+
+                // 策略A：清洗后问题包含完整关键词（最高权重）
+                if (cleanQ.indexOf(kw) !== -1) {
+                    score += kw.length * 14;
+                } else if (expandedClean.indexOf(kw) !== -1) {
+                    // 同义词展开后匹配到的，稍降权重
+                    score += kw.length * 12;
+                }
+                // 策略B：关键词包含清洗后问题
+                else if (kw.indexOf(cleanQ) !== -1 && cleanQ.length >= 2) {
+                    score += cleanQ.length * 12;
+                } else if (kw.indexOf(expandedClean) !== -1 && expandedClean.length >= 2) {
+                    score += expandedClean.length * 10;
+                }
+                // 策略C：原始问题/扩展问题直接子串匹配
+                if (rawQ.indexOf(kw) !== -1) {
+                    score += kw.length * 11;
+                } else if (kw.indexOf(rawQ) !== -1 && rawQ.length >= 2) {
+                    score += rawQ.length * 9;
+                } else if (expandedQ.indexOf(kw) !== -1) {
+                    score += kw.length * 8;
+                }
+
+                // 策略D：编辑距离模糊匹配（处理错别字和近似表达）
+                if (cleanQ.length >= 3 && kw.length >= 3) {
+                    es = editSimilarity(cleanQ, kw);
+                    if (es >= 0.8) {
+                        score += kw.length * 10 * es;
+                    } else if (es >= 0.7) {
+                        score += kw.length * 7 * es;
+                    } else if (es >= 0.55) {
+                        score += kw.length * 4 * es;
+                    }
+                }
+                // 也对比扩展后的文本
+                if (expandedClean.length >= 3 && kw.length >= 3 && expandedClean !== cleanQ) {
+                    es = editSimilarity(expandedClean, kw);
+                    if (es >= 0.75) {
+                        score += kw.length * 8 * es;
+                    } else if (es >= 0.6) {
+                        score += kw.length * 5 * es;
+                    }
+                }
+
+                // 策略E：Bigram 相似度（处理词序变化、部分重叠）
+                if (cleanQ.length >= 3 && kw.length >= 3) {
+                    ds = diceSimilarity(cleanQ, kw);
+                    if (ds >= 0.6) {
+                        score += kw.length * 7 * ds;
+                    } else if (ds >= 0.45) {
+                        score += kw.length * 4 * ds;
+                    } else if (ds >= 0.3) {
+                        score += kw.length * 2 * ds;
+                    }
+                }
+                // 也对比扩展后的文本
+                if (expandedClean.length >= 3 && kw.length >= 3 && expandedClean !== cleanQ) {
+                    ds = diceSimilarity(expandedClean, kw);
+                    if (ds >= 0.5) {
+                        score += kw.length * 5 * ds;
+                    } else if (ds >= 0.35) {
+                        score += kw.length * 3 * ds;
+                    }
+                }
+
+                // 策略F：滑动窗口子串匹配（同时检查原始和扩展文本）
+                // 检查问题中的任意连续子串是否出现在关键词中
+                var maxSubLen = Math.min(cleanQ.length, kw.length, 6);
+                for (len = 2; len <= maxSubLen; len++) {
+                    for (x = 0; x <= cleanQ.length - len; x++) {
+                        sub = cleanQ.substring(x, x + len);
+                        if (kw.indexOf(sub) !== -1) {
+                            score += sub.length * 2;
+                        }
+                    }
+                }
+                // 扩展文本的滑动窗口（额外加分）
+                if (expandedClean !== cleanQ) {
+                    var maxSubLen2 = Math.min(expandedClean.length, kw.length, 6);
+                    for (len = 2; len <= maxSubLen2; len++) {
+                        for (x = 0; x <= expandedClean.length - len; x++) {
+                            sub = expandedClean.substring(x, x + len);
+                            if (kw.indexOf(sub) !== -1) {
+                                score += sub.length * 1.5;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestMatch = item;
+            }
+        }
+
+        // ===== 答案内容相关性验证 =====
+        // 去掉通用建筑词汇后，剩下的特征词（如地名"上海"）必须出现在答案中
+        if (bestMatch && bestScore >= 18) {
+            var genericTerms = ['标志性','标志','标志性建筑','地标建筑','地标','标注','代表','著名','有名','出名','建筑物','建筑','民居','民宅','住宅','居住','特点','特色','结构','作用','功能','用途','历史','介绍','讲解','时期','时代','古代','中国','传统','什么','是','有','哪些','怎么','为何','如何','为什么','怎样','风格','类型','文化','艺术','技术','工艺','材料','形式','设计','空间','布局','环境','景观'];
+            var distinctive = cleanQ;
+            for (var gi = 0; gi < genericTerms.length; gi++) {
+                distinctive = distinctive.split(genericTerms[gi]).join('');
+            }
+            if (distinctive.length >= 2) {
+                var answerText = bestMatch.answer;
+                var foundInAnswer = false;
+                // 提取特征 bigram，至少一个要在答案或关键词中出现
+                var bigrams = [];
+                var seenBg = {};
+                for (var bi = 0; bi < distinctive.length - 1; bi++) {
+                    var bg = distinctive.substring(bi, bi + 2);
+                    if (!seenBg[bg]) { seenBg[bg] = true; bigrams.push(bg); }
+                }
+                for (var bi2 = 0; bi2 < bigrams.length; bi2++) {
+                    if (answerText.indexOf(bigrams[bi2]) !== -1) { foundInAnswer = true; break; }
+                }
+                if (!foundInAnswer) {
+                    for (var ki = 0; ki < bestMatch.keywords.length; ki++) {
+                        for (var bi3 = 0; bi3 < bigrams.length; bi3++) {
+                            if (bestMatch.keywords[ki].indexOf(bigrams[bi3]) !== -1) { foundInAnswer = true; break; }
+                        }
+                        if (foundInAnswer) break;
+                    }
+                }
+                if (!foundInAnswer) {
+                    console.log('[相关性验证] 特征词不在答案中，回退网络搜索');
+                    bestMatch = null;
+                    bestScore = 0;
+                }
+            }
+        }
+        // ===== 相关性验证结束 =====
+
+        if (bestMatch && bestScore >= 18) {
+            return bestMatch.answer;
+        }
+
+        // ---- 第5层：在答案内容中搜索相关词汇（降权兜底） ----
+        var words = rawQ.replace(/[吗呢吧呀啊么有什么|哪些|怎样|如何|为什么|是不是怎请问告诉我]/g, '')
+            .split(/[,，.。!！?？\s、，：；（）()\/\\\-—…·~～""''（）【】《》<>{}[\]|&]/)
+            .filter(function (w) { return w.length >= 2; });
+
+        if (words.length > 0) {
+            bestMatch = null;
+            bestScore = 0;
+            for (i = 0; i < qaDatabase.length; i++) {
+                item = qaDatabase[i];
+                score = 0;
+                var al = item.answer.toLowerCase();
+                for (j = 0; j < words.length; j++) {
+                    var w = words[j];
+                    if (al.indexOf(w) !== -1) {
+                        score += w.length * 4;
+                    }
+                }
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMatch = item;
+                }
+            }
+            // 第5层也加相关性验证：去掉通用词后的特征词必须在答案中
+            if (bestMatch && bestScore >= 6) {
+                var genTerms5 = ['标志性','标志','标志性建筑','地标建筑','地标','标注','代表','著名','有名','出名','建筑物','建筑','民居','民宅','住宅','居住','特点','特色','结构','作用','功能','用途','历史','介绍','讲解','时期','时代','古代','中国','传统','风格','类型','文化','艺术','技术','工艺','材料','形式','设计','空间','布局','环境','景观'];
+                var dist5 = cleanQ;
+                for (var g5 = 0; g5 < genTerms5.length; g5++) {
+                    dist5 = dist5.split(genTerms5[g5]).join('');
+                }
+                if (dist5.length >= 2) {
+                    var found5 = false;
+                    for (var dbi = 0; dbi < dist5.length - 1; dbi++) {
+                        if (bestMatch.answer.indexOf(dist5.substring(dbi, dbi+2)) !== -1) { found5 = true; break; }
+                    }
+                    if (!found5) {
+                        console.log('[第5层验证] 特征词不在答案中，放弃匹配');
+                        bestMatch = null;
+                        bestScore = 0;
+                    }
+                }
+            }
+            if (bestMatch && bestScore >= 6) {
+                return bestMatch.answer;
+            }
+        }
+
+        console.log('[检索结束] ❌ 未找到匹配，将触发网络搜索');
+        return null;
+    }
+
+       function chatSend() {
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        addChatMessage(text, true);
+        input.value = '';
+
+        const positivePatterns = ['很好', '正确', '对的', '不错', '没错', '很对', '是的', '说对了', '答对了'];
+        let isPositive = false;
+        for (const px of positivePatterns) {
+            if (text === px || (text.indexOf(px) !== -1 && text.length <= 4)) {
+                isPositive = true;
+                break;
+            }
+        }
+        if (isPositive && lastSearchResult && lastSearchQuestion) {
+            saveUserLearned(lastSearchQuestion, lastSearchResult);
+            if (typeof chatbot !== 'undefined' && typeof chatbot.learn === 'function') {
+                chatbot.learn(lastSearchQuestion, lastSearchResult);
+            }
+            addChatMessage('太好了，我知道了！答案已存入云端数据库！😊');
+            lastSearchResult = null;
+            lastSearchQuestion = null;
+            return;
+        }
+
+        // ===== 用户纠正：当助手给的答案不对 → 进入教答案模式（优先于待确认答案） =====
+        const correctPatterns = ['不对', '不是', '错了', '不正确', '错误', '错啦', '不是的', '不对不对', '有问题', '不对吧', '不准'];
+        let isCorrecting = false;
+        for (const p of correctPatterns) {
+            if (text.includes(p)) {
+                isCorrecting = true;
+                break;
+            }
+        }
+        if (isCorrecting && lastAskedQuestion) {
+            addChatMessage('请你直接告诉我正确的答案好吗？我会记住的！');
+            waitingForAnswer = lastAskedQuestion;
+            window._pendingConfirmQuestion = null;
+            window._pendingConfirmAnswer = null;
+            return;
+        }
+
+        // ===== 处理待确认答案：用户确认或拒绝之前提供的答案 =====
+        if (window._pendingConfirmQuestion && window._pendingConfirmAnswer) {
+            var confirmPatterns = ['确认', '对的', '正确', '是的', '没错', '对呀', '没问题', '可以', '好的', '行', '是的呀', '是的对'];
+            var rejectPatterns = ['算了吧', '拒绝', '不确认', '不确定', '不行', '不可以'];
+            var isConfirm = false;
+            var isReject = false;
+            for (var ci = 0; ci < confirmPatterns.length; ci++) {
+                if (text.indexOf(confirmPatterns[ci]) !== -1) { isConfirm = true; break; }
+            }
+            for (var ri = 0; ri < rejectPatterns.length; ri++) {
+                if (text.indexOf(rejectPatterns[ri]) !== -1) { isReject = true; break; }
+            }
+            if (isConfirm && !isReject) {
+                saveUserLearned(window._pendingConfirmQuestion, window._pendingConfirmAnswer);
+                if (typeof chatbot !== 'undefined' && typeof chatbot.learn === 'function') {
+                    chatbot.learn(window._pendingConfirmQuestion, window._pendingConfirmAnswer);
+                }
+                addChatMessage('太好了，我学会了！答案已存入数据库！😊');
+                window._pendingConfirmQuestion = null;
+                window._pendingConfirmAnswer = null;
+                window._lastRejectedAnswer = null;
+                waitingForAnswer = null;
+                return;
+            }
+            if (isReject) {
+                addChatMessage('好吧，下次再教我，再见！👋');
+                window._pendingConfirmQuestion = null;
+                window._pendingConfirmAnswer = null;
+                window._lastRejectedAnswer = null;
+                waitingForAnswer = null;
+                return;
+            }
+        }
+
+        // ===== 用户纠正：当小助手说"不对"后，用户反驳"我说的对的" → 强制接受 =====
+        const overridePatterns = ['我说的对的', '我讲的是对的', '我的回答是对的', '我说的就是对的', '我说的是对的', '我回答的是正确的', '我的答案是对的', '我说的正确', '我的答案正确', '我回答对了', '我说的没错', '我判断错了', '就是对的', '明明是对的', '你是错的', '你判断错了'];
+        let isOverride = false;
+        for (const op of overridePatterns) {
+            if (text.indexOf(op) !== -1) { isOverride = true; break; }
+        }
+        if (isOverride && waitingForAnswer && window._lastRejectedAnswer) {
+            saveUserLearned(waitingForAnswer, window._lastRejectedAnswer);
+            if (typeof chatbot !== 'undefined' && typeof chatbot.learn === 'function') {
+                chatbot.learn(waitingForAnswer, window._lastRejectedAnswer);
+            }
+            addChatMessage('太好了，我知道了！答案已存入云端数据库！😊');
+            window._lastRejectedAnswer = null;
+            window._pendingConfirmQuestion = null;
+            window._pendingConfirmAnswer = null;
+            waitingForAnswer = null;
+            return;
+        }
+
+        if (waitingForAnswer) {
+            // === 用户不想教/拒绝提供答案 ===
+            var refusalPatterns = ['不想告诉你', '不告诉你', '不想说', '不教', '不教你', '不要告诉你', '算了', '不说了', '以后再说', '不想回答', '不回答', '不方便说', '不知道', '我不会', '我不清楚', '不知道呀', '说不出'];
+            var isRefusal = false;
+            for (var rf = 0; rf < refusalPatterns.length; rf++) {
+                if (text.indexOf(refusalPatterns[rf]) !== -1) { isRefusal = true; break; }
+            }
+            if (isRefusal) {
+                addChatMessage('好吧，下次再教我。你还要问什么问题吗？👋');
+                window._pendingConfirmQuestion = null;
+                window._pendingConfirmAnswer = null;
+                window._lastRejectedAnswer = null;
+                waitingForAnswer = null;
+                return;
+            }
+
+            let chineseCount = 0;
+            for (let i = 0; i < text.length; i++) {
+                const code = text.charCodeAt(i);
+                if ((code >= 0x4E00 && code <= 0x9FFF) || (code >= 0x3400 && code <= 0x4DBF)) chineseCount++;
+            }
+            if (text.length >= 8 && chineseCount >= 2) {
+                var answerScore = (typeof getUserAnswerScore === 'function') ? getUserAnswerScore(waitingForAnswer, text) : 0;
+                if (answerScore >= 0.5) {
+                    // 匹配率 >= 50%，自动接受
+                    saveUserLearned(waitingForAnswer, text);
+                    if (typeof chatbot !== 'undefined' && typeof chatbot.learn === 'function') {
+                        chatbot.learn(waitingForAnswer, text);
+                    }
+                    addChatMessage('太好了，我学会了！答案已存入数据库！😊');
+                    window._lastRejectedAnswer = null;
+                    window._pendingConfirmQuestion = null;
+                    window._pendingConfirmAnswer = null;
+                    waitingForAnswer = null;
+                    return;
+                } else {
+                    // 匹配率 < 50%，暂存待确认
+                    window._pendingConfirmQuestion = waitingForAnswer;
+                    window._pendingConfirmAnswer = text;
+                    window._lastRejectedAnswer = text;
+                    addChatMessage('好像不太对呀，但我可以先记下来。如果确认请说<b>"确认"</b>，如果不对的话请说<b>"不对"</b>，我会让你重新输入答案。');
+                    return;
+                }
+            } else {
+                addChatMessage('请提供更详细完整的答案，包含足够的中文内容。');
+                return;
+            }
+        }
+
+        // === 用户表示不问了 / 结束对话 ===
+        var endPatterns = ['不用了', '没有了', '没事了', '不需要', '没什么', '没啥', '暂时没有', '不问了', '没有问题了'];
+        var isEnding = false;
+        for (var ep = 0; ep < endPatterns.length; ep++) {
+            if (text.indexOf(endPatterns[ep]) !== -1) { isEnding = true; break; }
+        }
+        if (isEnding) {
+            addChatMessage('好的，再见！有需要随时找我~ 👋');
+            return;
+        }
+
+        setTimeout(function() {
+            var answer = findAnswerByKeywords(text);
+
+            if (answer) {
+                lastAskedQuestion = text;
+                addChatMessage(answer);
+            } else {
+                lastAskedQuestion = text;
+                chatbotWebSearchFallback(text);
+            }
+        }, 500);
+    }
+
+// ... existing code ...
+
+
+// ... existing code ...
+
+
+    // 回车发送
+    document.addEventListener('DOMContentLoaded', function() {
+        const input = document.getElementById('chatInput');
+        if (input) {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    chatSend();
+                }
+            });
+        }
+    });
+
+    // Banner轮播功能
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.carousel-slide');
+    const indicators = document.querySelectorAll('.carousel-indicator');
+    let autoSlideInterval;
+
+    function showSlide(index) {
+        slides.forEach(slide => {
+            slide.classList.remove('opacity-100');
+            slide.classList.add('opacity-0');
+        });
+        indicators.forEach(ind => {
+            ind.classList.remove('opacity-100');
+            ind.classList.add('opacity-50');
+        });
+
+        slides[index].classList.remove('opacity-0');
+        slides[index].classList.add('opacity-100');
+        indicators[index].classList.remove('opacity-50');
+        indicators[index].classList.add('opacity-100');
+    }
+
+    function nextSlide() {
+        currentSlide = (currentSlide + 1) % slides.length;
+        showSlide(currentSlide);
+        resetAutoSlide();
+    }
+
+    function prevSlide() {
+        currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+        showSlide(currentSlide);
+        resetAutoSlide();
+    }
+
+    function goToSlide(index) {
+        currentSlide = index;
+        showSlide(currentSlide);
+        resetAutoSlide();
+    }
+
+    function startAutoSlide() {
+        autoSlideInterval = setInterval(nextSlide, 5000);
+    }
+
+    function resetAutoSlide() {
+        clearInterval(autoSlideInterval);
+        startAutoSlide();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        startAutoSlide();
+        // 从云端加载学过的知识
+        if (typeof loadCloudData === 'function') {
+            loadCloudData().then(function() {
+                // 同步本地数据到云端（反向同步）
+                if (typeof supabaseSyncLocalToCloud === 'function') {
+                    supabaseSyncLocalToCloud();
+                }
+            });
+        }
+    });
+</script>
+
+<script src="qa-expanded.js"></script>
+</body>
+</html>

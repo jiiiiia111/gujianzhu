@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>建筑知识闯关测验 - 中国古典建筑电子博物馆</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #fefce8 0%, #fef3c7 30%, #fffbeb 70%, #fefce8 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .title-line { width: 60px; height: 3px; background: #92400e; }
+        .quiz-section {
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 24px; padding: 40px 32px;
+            border: 1px solid #fde68a;
+            box-shadow: 0 8px 40px rgba(217,119,6,0.1);
+        }
+        .quiz-start-card { text-align: center; padding: 20px 10px; }
+        .quiz-btn-start {
+            display: inline-block; padding: 14px 48px;
+            background: linear-gradient(135deg, #d97706, #92400e);
+            color: #fff; border: none; border-radius: 50px;
+            font-size: 17px; font-weight: bold; cursor: pointer;
+            transition: all 0.3s; box-shadow: 0 4px 15px rgba(217,119,6,0.35);
+        }
+        .quiz-btn-start:hover { transform: scale(1.05); box-shadow: 0 6px 22px rgba(217,119,6,0.5); }
+        .quiz-timer { display: flex; align-items: center; gap: 8px; font-size: 20px; font-weight: bold; }
+        .quiz-timer.warning { color: #dc2626; animation: pulse 0.6s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        .quiz-progress-bar { height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+        .quiz-progress-fill { height: 100%; background: linear-gradient(90deg, #d97706, #fbbf24); transition: width 0.4s; border-radius: 3px; }
+        .quiz-option {
+            display: flex; align-items: center; gap: 12px;
+            width: 100%; padding: 15px 18px; border-radius: 14px;
+            background: #fff; border: 2px solid #e5e7eb;
+            cursor: pointer; transition: all 0.25s; font-size: 15px; text-align: left;
+        }
+        .quiz-option:hover:not(.disabled) { border-color: #fbbf24; background: #fffbeb; transform: translateX(4px); }
+        .quiz-option.correct { border-color: #10b981; background: #d1fae5; color: #065f46; }
+        .quiz-option.wrong { border-color: #ef4444; background: #fee2e2; color: #991b1b; }
+        .quiz-option .opt-letter {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: #f3f4f6; display: flex; align-items: center;
+            justify-content: center; font-weight: bold; font-size: 14px; flex-shrink: 0;
+            transition: all 0.25s;
+        }
+        .quiz-option:hover:not(.disabled) .opt-letter { background: #fef3c7; color: #92400e; }
+        .quiz-option.correct .opt-letter { background: #10b981; color: #fff; }
+        .quiz-option.wrong .opt-letter { background: #ef4444; color: #fff; }
+        .knowledge-card {
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border-left: 4px solid #d97706; border-radius: 12px;
+            padding: 18px 22px; margin-top: 18px; display: none;
+            animation: fadeIn 0.4s;
+        }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+        .knowledge-card h4 { color: #92400e; font-size: 15px; margin-bottom: 8px; }
+        .knowledge-card p { color: #78350f; font-size: 14px; line-height: 1.7; }
+        .scoreboard-table { width: 100%; border-collapse: collapse; }
+        .scoreboard-table th { background: #fef3c7; color: #92400e; padding: 12px 14px; font-size: 13px; text-align: left; }
+        .scoreboard-table td { padding: 12px 14px; font-size: 14px; border-bottom: 1px solid #fde68a; }
+        .scoreboard-table .rank-1 { background: #fffbeb; font-weight: bold; }
+        .result-score {
+            font-size: 56px; font-weight: bold;
+            background: linear-gradient(135deg, #d97706, #92400e);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .disabled { pointer-events: none; opacity: 0.65; }
+        .feature-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 16px; background: #fff; border-radius: 50px;
+            font-size: 14px; font-weight: 600; color: #92400e;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .btn-outline {
+            display: inline-block; padding: 10px 24px;
+            border: 2px solid #d97706; border-radius: 50px;
+            color: #92400e; font-size: 14px; font-weight: bold;
+            cursor: pointer; transition: all 0.3s; background: transparent;
+        }
+        .btn-outline:hover { background: #d97706; color: #fff; }
+        .btn-quit {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 6px 14px; border: 1.5px solid #e5e7eb; border-radius: 20px;
+            color: #9ca3af; font-size: 13px; cursor: pointer; transition: all 0.3s;
+            background: transparent;
+        }
+        .btn-quit:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
+        .quit-result { padding: 10px 0; }
+        .quit-result .score-card {
+            display: inline-block; background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border-radius: 16px; padding: 20px 40px; margin: 12px 0;
+            border: 2px dashed #fbbf24;
+        }
+        .score-per-q {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: #fef3c7; color: #92400e; font-size: 12px;
+            font-weight: bold; padding: 3px 10px; border-radius: 12px; margin-left: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<header class="bg-stone-900 text-white sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-building-columns text-2xl text-amber-500"></i>
+            <span class="text-xl font-bold">中国古典建筑电子博物馆</span>
+        </div>
+        <nav class="hidden md:flex gap-8">
+            <a href="index.html" class="hover:text-amber-400 transition">首页</a>
+            <a href="knowledge-建筑知识.html" class="hover:text-amber-400 transition">建筑知识</a>
+            <a href="shuzitujian-数字图鉴.html" class="hover:text-amber-400 transition">代表建筑</a>
+            <a href="exhibition-数字展厅.html" class="hover:text-amber-400 transition">数字展厅</a>
+            <a href="3d-building.html" class="hover:text-amber-400 transition">3D课堂</a>
+            <a href="quiz-challenge-闯关测验.html" class="text-amber-400 font-medium">闯关测验</a>
+            <a href="aboutus-关于我们.html" class="hover:text-amber-400 transition">关于我们</a>
+        </nav>
+    </div>
+</header>
+
+<section class="relative h-64 bg-cover bg-center flex items-center justify-center text-white" style="background-image: url('图片/颐和园-1.jpg');">
+    <div class="absolute w-full h-full bg-black/50"></div>
+    <div class="relative z-10 text-center px-4">
+        <h1 class="text-4xl md:text-5xl font-bold mb-2">建筑知识闯关测验</h1>
+        <p class="text-lg opacity-90">挑战你的古建筑知识，登上得分榜！</p>
+    </div>
+</section>
+
+<main class="flex-1 max-w-3xl mx-auto px-4 py-10 w-full">
+    <div class="text-center mb-8">
+        <div class="text-5xl mb-3">🏯</div>
+        <h1 class="text-3xl font-bold text-stone-800 mb-2">建筑知识闯关测验</h1>
+        <p class="text-gray-500">测试你的中国古建筑知识，挑战高分，登上得分榜！</p>
+        <div class="flex justify-center gap-4 mt-5">
+            <span class="feature-badge"><i class="fa-solid fa-random text-amber-500"></i> 随机10题</span>
+            <span class="feature-badge"><i class="fa-solid fa-clock text-amber-500"></i> 限时5分钟</span>
+            <span class="feature-badge"><i class="fa-solid fa-trophy text-amber-500"></i> 满分100</span>
+        </div>
+    </div>
+
+    <div class="quiz-section" id="quiz-container">
+        <!-- 开始界面 -->
+        <div class="quiz-start-card" id="quiz-start">
+            <div class="text-5xl mb-4">🎯</div>
+            <h3 class="text-xl font-bold text-stone-800 mb-3">准备好挑战了吗？</h3>
+            <p class="text-gray-600 mb-2">从题库中随机抽取 <strong>10道选择题</strong>，考验你的建筑知识</p>
+            <p class="text-sm text-gray-500 mb-8">答错会弹出知识卡片，帮你巩固学习</p>
+            <button class="quiz-btn-start" onclick="startQuiz()">
+                <i class="fa-solid fa-bolt mr-2"></i>开始闯关
+            </button>
+        </div>
+
+        <!-- 答题界面 -->
+        <div id="quiz-playing" style="display:none;">
+            <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <div class="quiz-timer" id="quiz-timer">
+                    <i class="fa-solid fa-clock text-amber-500"></i>
+                    <span id="timer-display">5:00</span>
+                </div>
+                <span class="text-sm text-gray-500" id="quiz-progress-text">第 1/10 题</span>
+                <span class="text-sm text-amber-600 font-bold" id="quiz-score">得分: 0 <span class="score-per-q">+10/题</span></span>
+                <button class="btn-quit" onclick="quitQuiz()" title="中途退出"><i class="fa-solid fa-right-from-bracket"></i> 退出</button>
+            </div>
+            <div class="quiz-progress-bar mb-6">
+                <div class="quiz-progress-fill" id="quiz-progress-fill" style="width:0%"></div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h3 class="text-lg font-bold text-stone-800 mb-5 leading-relaxed" id="question-text"></h3>
+                <div class="space-y-3" id="options-container"></div>
+                <div class="knowledge-card" id="knowledge-card">
+                    <h4><i class="fa-solid fa-lightbulb text-amber-500 mr-2"></i>知识卡片</h4>
+                    <p id="knowledge-text"></p>
+                </div>
+                <button class="quiz-btn-start mt-5" id="btn-next" style="display:none;padding:10px 28px;font-size:14px;" onclick="nextQuestion()">
+                    下一题 <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 结果界面 -->
+        <div id="quiz-result" style="display:none;text-align:center;">
+            <div class="text-5xl mb-3" id="result-emoji">🎉</div>
+            <h3 class="text-2xl font-bold text-stone-800 mb-2" id="result-title">闯关完成！</h3>
+            <div class="result-score mb-1" id="result-score">80</div>
+            <p class="text-gray-500 text-sm mb-2">总分 <span id="result-time"></span></p>
+            <div class="quit-result" id="quit-message" style="display:none;">
+                <p class="text-gray-500 text-sm" id="quit-subtitle"></p>
+            </div>
+            <div class="flex justify-center gap-10 mb-7">
+                <div class="text-center"><div class="text-2xl font-bold text-green-600" id="result-correct">8</div><div class="text-xs text-gray-500 mt-1">答对</div></div>
+                <div class="text-center"><div class="text-2xl font-bold text-red-500" id="result-wrong">2</div><div class="text-xs text-gray-500 mt-1">答错</div></div>
+                <div class="text-center"><div class="text-2xl font-bold text-amber-600" id="result-avg"></div><div class="text-xs text-gray-500 mt-1">平均每题</div></div>
+            </div>
+            <div class="flex justify-center gap-3 mb-8">
+                <button class="quiz-btn-start" style="padding:10px 24px;font-size:14px;" onclick="startQuiz()">
+                    <i class="fa-solid fa-rotate-right mr-1"></i>再来一局
+                </button>
+                <button class="btn-outline" onclick="showScoreboard()">
+                    <i class="fa-solid fa-trophy mr-1"></i>得分榜
+                </button>
+            </div>
+
+            <!-- 得分榜 -->
+            <div id="scoreboard-panel" style="display:none;text-align:left;">
+                <h4 class="font-bold text-stone-800 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-trophy text-amber-500"></i>历史得分榜 Top 10
+                </h4>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <table class="scoreboard-table">
+                        <thead><tr><th>排名</th><th>得分</th><th>正确率</th><th>用时</th><th>日期</th></tr></thead>
+                        <tbody id="scoreboard-body"></tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <button class="text-sm text-gray-400 hover:text-red-500 transition" onclick="clearScoreboard()">
+                        <i class="fa-solid fa-trash mr-1"></i>清空记录
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示小贴士 -->
+    <div class="mt-8 text-center text-xs text-gray-400">
+        <p>挑战成绩会自动保存在浏览器中，关闭页面也不会丢失</p>
+    </div>
+</main>
+
+<footer class="bg-stone-900 text-white py-8 text-center">
+    <p>© 2025 中国古典建筑电子博物馆 版权所有</p>
+    <p class="text-gray-400 text-sm mt-2">传承中华建筑文化 · 数字博物馆</p>
+</footer>
+
+<script>
+// ==================== 题库 ====================
+const quizBank = [
+    { q:"故宫始建于哪一年？", opts:["1368年","1406年","1420年","1644年"], c:1, k:"故宫始建于明朝永乐四年（1406年），建成于永乐十八年（1420年），距今已有600多年的历史，占地约72万平方米。" },
+    { q:"故宫占地约多少万平方米？", opts:["36万","50万","72万","100万"], c:2, k:"故宫占地面积约72万平方米，南北长961米，东西宽753米，拥有宫殿房屋9000余间。" },
+    { q:"故宫由哪位皇帝下令建造？", opts:["朱元璋","朱棣","康熙","乾隆"], c:1, k:"故宫由明朝皇帝朱棣（永乐皇帝）下令建造，始建于1406年，耗时14年，于1420年建成。" },
+    { q:"故宫三大殿是指哪三个？", opts:["太和殿、中和殿、保和殿","乾清宫、交泰殿、坤宁宫","午门、神武门、东华门","养心殿、文华殿、武英殿"], c:0, k:"故宫三大殿是指外朝的太和殿（金銮殿）、中和殿、保和殿。太和殿是故宫最大最宏伟的宫殿。" },
+    { q:"故宫为什么被称为'紫禁城'？", opts:["城墙是紫色的","紫微星垣象征天帝居所，禁指皇权禁地","古代用紫色涂料粉刷","最早的主人名叫紫禁"], c:1, k:"'紫'指紫微星垣，象征天帝的居所；'禁'指皇权禁地，普通百姓不得入内。因此寓意这里是天帝之子皇帝的居所。" },
+    { q:"长城总长度超过多少公里？", opts:["1万","1.5万","2.1万","3万"], c:2, k:"中国长城总长度超过2.1万公里，包括明长城8851.8公里，东起山海关西至嘉峪关，途经15个省、市、自治区。" },
+    { q:"长城东起哪里，西至哪里？", opts:["居庸关至雁门关","山海关至嘉峪关","山海关至玉门关","居庸关至嘉峪关"], c:1, k:"明代长城东起山海关（天下第一关），西至嘉峪关，全长8851.8公里。" },
+    { q:"长城最早始建于哪个时期？", opts:["秦朝","汉朝","春秋战国","明朝"], c:2, k:"长城的修建最早可以追溯到春秋战国时期。秦始皇统一六国后连接各国长城，形成万里长城。" },
+    { q:"山海关被誉为什么？", opts:["天下第一关","天下第一雄关","天下第一要塞","万里第一关"], c:0, k:"山海关位于长城东端，被誉为'天下第一关'，是东北与中原的重要关隘。" },
+    { q:"苏州园林的核心理念是什么？", opts:["对称庄重","虽由人作，宛自天开","高大宏伟","金碧辉煌"], c:1, k:"苏州园林强调'虽由人作，宛自天开'的意境，布局自由灵活，以水景、假山、亭台楼阁营造诗情画意。" },
+    { q:"中国四大名园不包括哪个？", opts:["北京颐和园","承德避暑山庄","苏州拙政园","北京圆明园"], c:3, k:"中国四大名园是：北京颐和园、承德避暑山庄、苏州拙政园、苏州留园。圆明园虽著名但不属四大名园。" },
+    { q:"拙政园以什么特色取胜？", opts:["假山","水景","建筑规模","花木品种"], c:1, k:"拙政园是苏州最大的古典园林，园名取'拙者之为政'之意，以水景取胜，水面占全园五分之三。" },
+    { q:"福建土楼主要分布在哪些地方？", opts:["福建永定、南靖、华安","福建福州、厦门","广东梅州、潮州","江西赣州"], c:0, k:"福建土楼主要分布在福建永定、南靖、华安等地，有圆形和方形两种，2008年被列为世界文化遗产。" },
+    { q:"赵州桥由谁设计建造？", opts:["鲁班","李诫","李春","喻皓"], c:2, k:"赵州桥由隋代工匠李春设计建造，是世界上现存最古老的敞肩式石拱桥，距今已有1400多年历史，被誉为'天下第一桥'。" },
+    { q:"赵州桥的敞肩式设计有什么好处？", opts:["更加美观","减轻桥身自重","方便船只通过","增加桥面宽度"], c:1, k:"赵州桥的敞肩式设计（两边各两个小拱）可以减轻桥身自重，同时分散洪水冲击力，比欧洲早了1200多年。" },
+    { q:"都江堰由谁主持修建？", opts:["秦始皇","诸葛亮","李冰父子","大禹"], c:2, k:"都江堰是公元前256年秦国蜀郡太守李冰父子主持修建的大型水利工程，距今已有2200多年，是世界上最古老且仍在使用的水利工程。" },
+    { q:"都江堰由哪三部分组成？", opts:["鱼嘴、飞沙堰、宝瓶口","水闸、堤坝、运河","进水口、出水口、闸门","拦河坝、分水渠、蓄水池"], c:0, k:"都江堰由三部分组成：鱼嘴（分水）、飞沙堰（排沙泄洪）、宝瓶口（控制进水量），三者巧妙配合科学解决防洪、灌溉、排沙问题。" },
+    { q:"中国传统建筑最高等级的屋顶形式是？", opts:["歇山顶","悬山顶","庑殿顶","攒尖顶"], c:2, k:"庑殿顶是中国传统建筑的最高等级屋顶形式，四坡面四垂脊，庄重大气。太和殿就是典型的庑殿顶。" },
+    { q:"榫卯结构的特点是什么？", opts:["用钉子固定","用胶水粘合","凸凹咬合，不用钉胶","用绳子捆绑"], c:2, k:"榫卯是传统木结构核心连接方式：'榫'是凸出的部分，'卯'是凹入的部分，两者紧密结合，不用钉子和胶水。" },
+    { q:"《营造法式》的作者是谁？", opts:["鲁班","李诫","李春","梁思成"], c:1, k:"李诫是北宋时期的著名建筑师，编撰的《营造法式》是中国古代最完整的建筑技术书籍，系统总结了宋代以前的建筑经验。" }
+];
+
+// ==================== 测验状态 ====================
+let quizQuestions = [];
+let currentQIndex = 0;
+let score = 0;
+let timerSeconds = 0;
+let timerInterval = null;
+let quizActive = false;
+const TOTAL_TIME = 300; // 5分钟
+
+// ==================== 开始测验 ====================
+function startQuiz() {
+    const shuffled = [...quizBank].sort(() => Math.random() - 0.5);
+    quizQuestions = shuffled.slice(0, 10);
+    currentQIndex = 0;
+    score = 0;
+    timerSeconds = TOTAL_TIME;
+    quizActive = true;
+
+    document.getElementById('quiz-start').style.display = 'none';
+    document.getElementById('quiz-playing').style.display = 'block';
+    document.getElementById('quiz-result').style.display = 'none';
+    document.getElementById('quiz-score').innerHTML = '得分: 0 <span class="score-per-q">+10/题</span>';
+    document.getElementById('quiz-progress-fill').style.width = '0%';
+    document.getElementById('timer-display').textContent = '5:00';
+    document.getElementById('quiz-timer').classList.remove('warning');
+
+    clearInterval(timerInterval);
+    timerInterval = setInterval(tickTimer, 1000);
+    renderQuestion();
+}
+
+function tickTimer() {
+    timerSeconds--;
+    updateTimer();
+    if (timerSeconds <= 0) {
+        endQuiz();
+    }
+}
+
+function updateTimer() {
+    const m = Math.floor(timerSeconds / 60);
+    const s = timerSeconds % 60;
+    document.getElementById('timer-display').textContent = m + ':' + String(s).padStart(2, '0');
+    const timerEl = document.getElementById('quiz-timer');
+    if (timerSeconds <= 60) { timerEl.classList.add('warning'); }
+    else { timerEl.classList.remove('warning'); }
+}
+
+function renderQuestion() {
+    if (currentQIndex >= quizQuestions.length) { endQuiz(); return; }
+
+    const qData = quizQuestions[currentQIndex];
+    document.getElementById('question-text').textContent = (currentQIndex + 1) + '. ' + qData.q;
+    document.getElementById('quiz-progress-text').textContent = '第 ' + (currentQIndex + 1) + '/10 题';
+    document.getElementById('quiz-progress-fill').style.width = ((currentQIndex) / 10 * 100) + '%';
+
+    const letters = ['A', 'B', 'C', 'D'];
+    const container = document.getElementById('options-container');
+    container.innerHTML = qData.opts.map((opt, i) =>
+        `<div class="quiz-option" onclick="selectOption(${i}, this)" id="opt-${i}">
+            <span class="opt-letter">${letters[i]}</span>
+            <span>${opt}</span>
+        </div>`
+    ).join('');
+
+    document.getElementById('knowledge-card').style.display = 'none';
+    document.getElementById('btn-next').style.display = 'none';
+}
+
+function selectOption(idx, el) {
+    if (!quizActive) return;
+    quizActive = false;
+
+    const qData = quizQuestions[currentQIndex];
+    const isCorrect = (idx === qData.c);
+
+    document.querySelectorAll('.quiz-option').forEach(o => o.classList.add('disabled'));
+    document.getElementById('opt-' + qData.c).classList.add('correct');
+    if (!isCorrect) {
+        el.classList.add('wrong');
+        document.getElementById('knowledge-text').textContent = qData.k;
+        document.getElementById('knowledge-card').style.display = 'block';
+    }
+
+    if (isCorrect) {
+        score += 10;
+        document.getElementById('quiz-score').innerHTML = '得分: ' + score + ' <span class="score-per-q">+10/题</span>';
+        // 答对了简单地闪烁一下正确选项
+        const correctEl = document.getElementById('opt-' + qData.c);
+        correctEl.style.transition = 'none';
+        correctEl.style.transform = 'scale(1.02)';
+        setTimeout(() => {
+            correctEl.style.transition = 'transform 0.3s';
+            correctEl.style.transform = 'scale(1)';
+        }, 150);
+    }
+
+    document.getElementById('btn-next').style.display = 'inline-block';
+}
+
+function nextQuestion() {
+    currentQIndex++;
+    quizActive = true;
+    if (currentQIndex >= quizQuestions.length) {
+        endQuiz();
+    } else {
+        renderQuestion();
+    }
+}
+
+function endQuiz(quit) {
+    clearInterval(timerInterval);
+    quizActive = false;
+    document.getElementById('quiz-playing').style.display = 'none';
+    document.getElementById('quiz-result').style.display = 'block';
+    document.getElementById('scoreboard-panel').style.display = 'none';
+
+    const correctCount = score / 10;
+    const answeredCount = currentQIndex + (quit ? 0 : 1); // 退出时不算当前未答题
+    const totalAnswered = quit ? currentQIndex : 10;
+    const wrongCount = totalAnswered - correctCount;
+    const timeUsed = TOTAL_TIME - timerSeconds;
+    const m = Math.floor(timeUsed / 60);
+    const s = timeUsed % 60;
+    const timeStr = m + '分' + String(s).padStart(2, '0') + '秒';
+
+    document.getElementById('result-score').textContent = score;
+
+    if (quit) {
+        // 中途退出
+        document.getElementById('quiz-score').textContent = '得分: ' + score;
+        document.getElementById('result-time').textContent = '已答 ' + totalAnswered + ' 题 · 用时 ' + timeStr;
+        document.getElementById('quit-message').style.display = 'block';
+        document.getElementById('result-emoji').textContent = '👋';
+        document.getElementById('result-title').textContent = '中途退出';
+
+        const remainCount = 10 - totalAnswered;
+        if (score >= 70 && totalAnswered >= 7) {
+            document.getElementById('quit-subtitle').textContent = '成绩不错！但还剩 ' + remainCount + ' 题没答完，有点可惜呢～欢迎下次再来挑战满分！';
+        } else if (score >= 40) {
+            document.getElementById('quit-subtitle').textContent = '已经拿到 ' + score + ' 分了，还剩 ' + remainCount + ' 题没答。别灰心，下次一定可以的！期待你的再次挑战～';
+        } else {
+            document.getElementById('quit-subtitle').textContent = '虽然提前退出了，但没关系！每一题都是学习的机会。欢迎随时再来，期待你下次答出好成绩！';
+        }
+
+        document.getElementById('result-correct').textContent = correctCount;
+        document.getElementById('result-wrong').textContent = wrongCount;
+        document.getElementById('result-avg').textContent = totalAnswered > 0 ? (timeUsed / totalAnswered).toFixed(0) + '秒/题' : '-';
+    } else {
+        // 正常完成
+        document.getElementById('result-time').textContent = '答完 10 题 · 用时 ' + timeStr;
+        document.getElementById('quit-message').style.display = 'none';
+        document.getElementById('result-correct').textContent = correctCount;
+        document.getElementById('result-wrong').textContent = wrongCount;
+        document.getElementById('result-avg').textContent = (timeUsed / 10).toFixed(0) + '秒/题';
+
+        if (score === 100) {
+            document.getElementById('result-emoji').textContent = '👑';
+            document.getElementById('result-title').textContent = '满分通关！你是建筑大师！';
+        } else if (score >= 90) {
+            document.getElementById('result-emoji').textContent = '🏆';
+            document.getElementById('result-title').textContent = '完美通关！';
+        } else if (score >= 70) {
+            document.getElementById('result-emoji').textContent = '🎉';
+            document.getElementById('result-title').textContent = '闯关成功！';
+        } else if (score >= 50) {
+            document.getElementById('result-emoji').textContent = '📚';
+            document.getElementById('result-title').textContent = '继续加油！';
+        } else {
+            document.getElementById('result-emoji').textContent = '💪';
+            document.getElementById('result-title').textContent = '多学习再来！';
+        }
+    }
+
+    document.getElementById('quiz-progress-fill').style.width = '100%';
+    // 保存成绩（中途退出也保存）
+    saveScore(score, correctCount, timeUsed, quit);
+}
+
+function quitQuiz() {
+    if (!quizActive) return;
+    if (confirm('确定要退出闯关吗？\n\n当前得分：' + score + ' 分\n已答：' + currentQIndex + ' 题\n\n退出后仍会保存当前成绩。')) {
+        endQuiz(true);
+    }
+}
+
+// ==================== 得分榜 ====================
+function getScoreboard() {
+    try {
+        const data = localStorage.getItem('arch_quiz_scores');
+        return data ? JSON.parse(data) : [];
+    } catch (e) { return []; }
+}
+
+function saveScore(score, correct, timeSec, quit) {
+    const board = getScoreboard();
+    board.push({
+        score: score,
+        correct: correct,
+        total: quit ? '未完成' : 10,
+        time: timeSec,
+        date: new Date().toLocaleDateString('zh-CN'),
+        quit: !!quit
+    });
+    board.sort((a, b) => b.score - a.score || a.time - b.time);
+    const top = board.slice(0, 10);
+    try { localStorage.setItem('arch_quiz_scores', JSON.stringify(top)); } catch (e) {}
+}
+
+function showScoreboard() {
+    const panel = document.getElementById('scoreboard-panel');
+    if (panel.style.display === 'none' || panel.style.display === '') {
+        panel.style.display = 'block';
+        renderScoreboard();
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+function renderScoreboard() {
+    const board = getScoreboard();
+    const tbody = document.getElementById('scoreboard-body');
+    if (board.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;padding:28px;font-size:14px;">暂无记录，快去闯关吧！🏃</td></tr>';
+        return;
+    }
+    tbody.innerHTML = board.map((r, i) => {
+        const min = Math.floor(r.time / 60);
+        const sec = r.time % 60;
+        const rankClass = i === 0 ? 'rank-1' : '';
+        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+        const totalDisplay = r.quit ? '<span style="color:#f59e0b;font-size:12px;">未答完</span>' : '100%';
+        const totalLabel = r.quit ? Math.round(r.correct / Math.max(r.total === '未完成' ? 10 : r.total, 1) * 100) + '%' : '100%';
+        return `<tr class="${rankClass}">
+            <td>${medal}</td>
+            <td><strong>${r.score}分</strong></td>
+            <td>${Math.round(r.correct / (r.quit ? 10 : r.total) * 100)}%${r.quit ? '<span style="color:#f59e0b;font-size:11px;margin-left:4px;">退</span>' : ''}</td>
+            <td>${min}分${String(sec).padStart(2,'0')}秒</td>
+            <td>${r.date}</td>
+        </tr>`;
+    }).join('');
+}
+
+function clearScoreboard() {
+    if (confirm('确认清空所有闯关记录吗？此操作不可恢复。')) {
+        localStorage.removeItem('arch_quiz_scores');
+        renderScoreboard();
+    }
+}
+</script>
+
+</body>
+</html>

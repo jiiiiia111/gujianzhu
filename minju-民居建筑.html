@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>民居建筑 - 中国古典建筑电子博物馆</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: #f9fafb; }
+        .card-hover { transition: 0.3s; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.08); }
+        .title-line { width: 60px; height: 3px; background: #92400e; }
+        
+        /* 文字特效 */
+        .text-gradient {
+            background: linear-gradient(90deg, #d97706, #ffffff, #d97706);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textShine 3s linear infinite;
+        }
+        @keyframes textShine {
+            0% { background-position: 0%; }
+            100% { background-position: 200%; }
+        }
+        .fade-in {
+            animation: fadeIn 1.2s ease forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 民居卡片 */
+        .minju-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+        }
+        .minju-card img {
+            transition: transform 0.5s ease;
+        }
+        .minju-card:hover img {
+            transform: scale(1.1);
+        }
+        .minju-card .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 2rem 1rem 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 导航栏 -->
+<header class="bg-stone-900 text-white sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-building-columns text-2xl text-amber-500"></i>
+            <span class="text-xl font-bold">中国古典建筑电子博物馆</span>
+        </div>
+        <nav class="hidden md:flex gap-8">
+            <a href="index.html" class="hover:text-amber-400 transition">首页</a>
+            <a href="knowledge-建筑知识.html" class="text-amber-400 font-medium">建筑知识</a>
+            <a href="shuzitujian-数字图鉴.html" class="hover:text-amber-400 transition">代表建筑</a>
+            <a href="exhibition-数字展厅.html" class="hover:text-amber-400 transition">数字展厅</a>
+            <a href="3d-building.html" class="hover:text-amber-400 transition">3D课堂</a>
+            <a href="quiz-challenge-闯关测验.html" class="hover:text-amber-400 transition">闯关测验</a>
+            <a href="aboutus-关于我们.html" class="hover:text-amber-400 transition">关于我们</a>
+        </nav>
+    </div>
+</header>
+
+<!-- 头部banner -->
+<section class="relative h-80 bg-cover bg-center flex items-center justify-center text-white" style="background-image: url('图片/窑洞-1.png');">
+    <div class="absolute w-full h-full bg-black/50"></div>
+    <div class="relative z-10 text-center px-4 fade-in">
+        <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gradient">中国民居建筑</h1>
+        <p class="text-xl opacity-90">一方水土养一方人 · 地域文化 建筑智慧</p>
+    </div>
+</section>
+
+<!-- 内容区 -->
+<main class="max-w-7xl mx-auto px-4 py-12">
+
+        <!-- 概述 -->
+    <div class="bg-white rounded-2xl shadow-lg p-8 mb-8 fade-in">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="title-line"></div>
+            <h2 class="text-2xl font-bold text-stone-800">民居建筑概述</h2>
+        </div>
+        
+        <div class="text-gray-700 leading-8">
+            <p class="mb-4">
+                民居建筑是最贴近生活的传统建筑类型，因地制宜、就地取材，适应各地气候、地形与生活习俗，承载着百姓的生活智慧与地域文化。
+            </p>
+            <p>
+                从北方的四合院到南方的吊脚楼，从黄土高原的窑洞到草原上的蒙古包，从福建的土楼到云南的竹楼，每一种民居都蕴含着先民适应自然、改造自然的智慧，体现了"天人合一"的建筑理念。
+            </p>
+        </div>
+    </div>
+
+    <!-- 典型民居类型 -->
+    <div class="mb-6">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="title-line"></div>
+            <h2 class="text-xl font-bold text-stone-800">典型民居类型</h2>
+        </div>
+
+        <!-- 陕北窑洞 -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-6 fade-in">
+            <div class="grid md:grid-cols-3">
+                <div class="md:col-span-1 h-56 md:h-auto">
+                    <img src="图片/窑洞-1.webp" class="w-full h-full object-cover" alt="陕北窑洞">
+                </div>
+                <div class="md:col-span-2 p-6">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fa-solid fa-house-crack text-xl text-amber-600"></i>
+                        <h3 class="text-xl font-bold text-stone-800">陕北窑洞</h3>
+                    </div>
+                    <p class="text-gray-700 leading-6 mb-3">
+                        窑洞是中国北方黄土高原特有的民居形式，主要分布在陕西、山西、甘肃等地区。窑洞依山就势，凿土成洞，具有冬暖夏凉的特性，是先民适应黄土高原自然环境的杰作。
+                    </p>
+                    <div class="flex gap-4">
+                        <div class="bg-amber-50 px-4 py-2 rounded-lg">
+                            <span class="text-xs text-amber-800 font-medium">特点</span>
+                            <p class="text-sm text-gray-600">土墙土顶，厚实保暖，节约土地</p>
+                        </div>
+                        <div class="bg-amber-50 px-4 py-2 rounded-lg">
+                            <span class="text-xs text-amber-800 font-medium">分布</span>
+                            <p class="text-sm text-gray-600">陕西延安、山西平遥、甘肃庆阳</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 蒙古包 -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-6 fade-in">
+            <div class="grid md:grid-cols-3">
+                <div class="md:col-span-1 h-56 md:h-auto">
+                    <img src="图片/蒙古包-2.webp" class="w-full h-full object-cover" alt="蒙古包">
+                </div>
+                <div class="md:col-span-2 p-6">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fa-solid fa-campground text-xl text-amber-600"></i>
+                        <h3 class="text-xl font-bold text-stone-800">蒙古包</h3>
+                    </div>
+                    <p class="text-gray-700 leading-6 mb-3">
+                        蒙古包是蒙古族游牧生活的产物，构造轻盈、拆装便捷，适合逐水草而居的游牧生活方式。蒙古包呈圆形，顶部为穹窿状，围护结构用羊毛毡覆盖，既保温又防风。
+                    </p>
+                    <div class="flex gap-4">
+                        <div class="bg-amber-50 px-4 py-2 rounded-lg">
+                            <span class="text-xs text-amber-800 font-medium">特点</span>
+                            <p class="text-sm text-gray-600">拆卸便捷，移动方便，通风采光好</p>
+                        </div>
+                        <div class="bg-amber-50 px-4 py-2 rounded-lg">
+                            <span class="text-xs text-amber-800 font-medium">分布</span>
+                            <p class="text-sm text-gray-600">内蒙古、新疆、青海、甘肃</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 北京四合院 -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-6 fade-in">
+            <div class="grid md:grid-cols-3">
+                <div class="md:col-span-1 h-56 md:h-auto">
+                    <img src="图片/北京四合院-2.png" class="w-full h-full object-cover" alt="北京四合院">
+                </div>
+                <div class="md:col-span-2 p-6">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fa-solid fa-house-user text-xl text-amber-600"></i>
+                        <h3 class="text-xl font-bold text-stone-800">北京四合院</h3>
+                    </div>
+                    <p class="text-gray-700 leading-6 mb-3">
+                        四合院是北方传统民居的典型代表，以院为中心，四面建房围合，形成封闭式的居住空间。建筑布局严谨，中轴对称，反映了儒家"礼制"思想和家族观念。
+                    </p>
+                    <div class="flex gap-4">
+                        <div class="bg-amber-50 px-4 py-2 rounded-lg">
+                            <span class="text-xs text-amber-800 font-medium">特点</span>
+                            <p class="text-sm text-gray-600">方正对称，庭院开阔，私密性好</p>
+                        </div>
+                        <div class="bg-amber-50 px-4 py-2 rounded-lg">
+                            <span class="text-xs text-amber-800 font-medium">分布</span>
+                            <p class="text-sm text-gray-600">北京、天津、河北、山西</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 徽派民居 -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-6 fade-in">
+            <div class="grid md:grid-cols-3">
+                <div class="md:col-span-1 h-56 md:h-auto">
+                    <img src="图片/徽派建筑-1.png" class="w-full h-full object-cover" alt="徽派民居">
+                </div>
+                <div class="md:col-span-2 p-6">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fa-solid fa-paintbrush text-xl text-amber-600"></i>
+                        <h3 class="text-xl font-bold text-stone-800">徽派民居</h3>
+                    </div>
+                    <p class="text-gray-700 leading-6 mb-3">
+                        徽派建筑是安徽、江西地区传统建筑流派，以白墙黛瓦、马头墙、精美木雕著称。高耸的马头墙既可防火，又增添建筑美感；室内木雕精细华美，题材丰富。
+                    </p>
+                    <div class="flex gap-4">
+                        <div class="bg-amber-50 px-4 py-2 rounded-lg">
+                            <span class="text-xs text-amber-800 font-medium">特点</span>
+                            <p class="text-sm text-gray-600">白墙黛瓦，马头墙高耸，砖木石雕精美</p>
+                        </div>
+                        <div class="bg-amber-50 px-4 py-2 rounded-lg">
+                            <span class="text-xs text-amber-800 font-medium">分布</span>
+                            <p class="text-sm text-gray-600">安徽黄山、江西婺源、浙江</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 福建土楼 -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-6 fade-in">
+            <div class="grid md:grid-cols-3">
+                <div class="md:col-span-1 h-56 md:h-auto">
+                    <img src="图片/土楼-1.jpg" class="w-full h-full object-cover" alt="福建土楼">
+                </div>
+                <div class="md:col-span-2 p-6">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fa-solid fa-fort-awesome text-xl text-amber-600"></i>
+                        <h3 class="text-xl font-bold text-stone-800">福建土楼</h3>
+                    </div>
+                    <p class="text-gray-700 leading-6 mb-3">
+                        土楼是客家人的独特民居，被称为"东方古城堡"。多为圆形或方形，规模宏大，一座土楼可容纳数十乃至上百户人家，集居住、防御、家族聚会于一体。
+                    </p>
+                    <div class="flex gap-4">
+                        <div class="bg-amber-50 px-4 py-2 rounded-lg">
+                            <span class="text-xs text-amber-800 font-medium">特点</span>
+                            <p class="text-sm text-gray-600">生土夯筑，坚固耐久，群体聚居，防御性强</p>
+                        </div>
+                        <div class="bg-amber-50 px-4 py-2 rounded-lg">
+                            <span class="text-xs text-amber-800 font-medium">分布</span>
+                            <p class="text-sm text-gray-600">福建永定、南靖、华安</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 傣族竹楼 -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-6 fade-in">
+            <div class="grid md:grid-cols-3">
+                <div class="md:col-span-1 h-56 md:h-auto">
+                    <img src="图片/傣家竹楼.png" class="w-full h-full object-cover" alt="傣族竹楼">
+                </div>
+                <div class="md:col-span-2 p-6">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fa-solid fa-tree text-xl text-amber-600"></i>
+                        <h3 class="text-xl font-bold text-stone-800">傣族竹楼</h3>
+                    </div>
+                    <p class="text-gray-700 leading-6 mb-3">
+                        竹楼是云南傣族的传统民居，底层架空用于通风防潮，上层居住。建筑全部采用竹子建造，屋顶呈人字形，覆以茅草或瓦片，充分适应热带气候。
+                    </p>
+                    <div class="flex gap-4">
+                        <div class="bg-amber-50 px-4 py-2 rounded-lg">
+                            <span class="text-xs text-amber-800 font-medium">特点</span>
+                            <p class="text-sm text-gray-600">底层架空，竹木结构，通风防潮，凉爽宜居</p>
+                        </div>
+                        <div class="bg-amber-50 px-4 py-2 rounded-lg">
+                            <span class="text-xs text-amber-800 font-medium">分布</span>
+                            <p class="text-sm text-gray-600">云南西双版纳、德宏、普洱</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 吊脚楼/高脚楼 -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-6 fade-in">
+            <div class="grid md:grid-cols-3">
+                <div class="md:col-span-1 h-56 md:h-auto bg-stone-800 flex items-center justify-center">
+                    <img src="图片/高脚楼-2.png" class="w-full h-full object-cover" alt="吊脚楼">
+                </div>
+                <div class="md:col-span-2 p-6">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fa-solid fa-stairs text-xl text-amber-600"></i>
+                        <h3 class="text-xl font-bold text-stone-800">吊脚楼（高脚楼）</h3>
+                    </div>
+                    <p class="text-gray-700 leading-6 mb-3">
+                        吊脚楼主要分布在湘西、贵州、广西等山区，是苗族、土家族等民族的典型民居。建筑依山就势，底部用木柱支撑架空，既可防潮防蛇虫，又能适应山地地形。
+                    </p>
+                    <div class="flex gap-4">
+                        <div class="bg-amber-50 px-4 py-2 rounded-lg">
+                            <span class="text-xs text-amber-800 font-medium">特点</span>
+                            <p class="text-sm text-gray-600">依山就势，底层架空，坡度适应，木结构</p>
+                        </div>
+                        <div class="bg-amber-50 px-4 py-2 rounded-lg">
+                            <span class="text-xs text-amber-800 font-medium">分布</span>
+                            <p class="text-sm text-gray-600">湖南湘西、贵州黔东南、广西</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 民居特点总结 -->
+    <div class="bg-white rounded-2xl shadow-lg p-8 mb-8 fade-in">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="title-line"></div>
+            <h2 class="text-2xl font-bold text-stone-800">民居建筑共同特点</h2>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6 mt-6">
+            <div class="text-center p-6 bg-amber-50 rounded-xl card-hover">
+                <i class="fa-solid fa-leaf text-3xl text-amber-600 mb-3"></i>
+                <h4 class="font-bold text-stone-800 mb-2">因地制宜</h4>
+                <p class="text-gray-600 text-sm">就地取材，适应气候与地形，与自然和谐共生</p>
+            </div>
+            <div class="text-center p-6 bg-amber-50 rounded-xl card-hover">
+                <i class="fa-solid fa-users text-3xl text-amber-600 mb-3"></i>
+                <h4 class="font-bold text-stone-800 mb-2">家族聚居</h4>
+                <p class="text-gray-600 text-sm">体现家族观念，多代同堂的空间布局</p>
+            </div>
+            <div class="text-center p-6 bg-amber-50 rounded-xl card-hover">
+                <i class="fa-solid fa-palette text-3xl text-amber-600 mb-3"></i>
+                <h4 class="font-bold text-stone-800 mb-2">地域特色</h4>
+                <p class="text-gray-600 text-sm">不同地区形成独特的建筑风格与文化符号</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 返回 -->
+    <div class="text-center">
+        <a href="index.html" class="inline-flex items-center gap-2 bg-stone-800 text-white px-8 py-3 rounded-lg hover:bg-stone-700 transition">
+            <i class="fa-solid fa-arrow-left"></i> 返回首页
+        </a>
+    </div>
+
+</main>
+
+<!-- 页脚 -->
+<footer class="bg-stone-900 text-white py-8 text-center fade-in">
+    <p>© 2025 中国古典建筑电子博物馆 版权所有</p>
+    <p class="text-gray-400 text-sm mt-2">传承中华建筑文化 · 数字博物馆</p>
+</footer>
+
+</body>
+</html>

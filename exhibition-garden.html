@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>江南园林数字展厅 - 中国古典建筑电子博物馆</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: #f9fafb; }
+        .card-hover { transition: 0.3s; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.08); }
+        .title-line { width: 60px; height: 3px; background: #92400e; }
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; }
+        .video-container video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+
+<header class="bg-stone-900 text-white sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-building-columns text-2xl text-amber-500"></i>
+            <span class="text-xl font-bold">中国古典建筑电子博物馆</span>
+        </div>
+        <nav class="hidden md:flex gap-8">
+            <a href="index.html" class="hover:text-amber-400 transition">首页</a>
+            <a href="knowledge-建筑知识.html" class="hover:text-amber-400 transition">建筑知识</a>
+            <a href="shuzitujian-数字图鉴.html" class="hover:text-amber-400 transition">代表建筑</a>
+            <a href="exhibition-数字展厅.html" class="text-amber-400 font-medium">数字展厅</a>
+            <a href="3d-building.html" class="hover:text-amber-400 transition">3D课堂</a>
+            <a href="quiz-challenge-闯关测验.html" class="hover:text-amber-400 transition">闯关测验</a>
+            <a href="aboutus-关于我们.html" class="hover:text-amber-400 transition">关于我们</a>
+        </nav>
+    </div>
+</header>
+
+<section class="relative h-64 bg-cover bg-center flex items-center justify-center text-white" style="background-image: url('图片/拙政园-1.jpg');">
+    <div class="absolute w-full h-full bg-black/50"></div>
+    <div class="relative z-10 text-center px-4">
+        <h1 class="text-4xl md:text-5xl font-bold mb-2">江南园林数字展厅</h1>
+        <p class="text-lg opacity-90">拙政园 · 留园 · 苏州园林航拍</p>
+    </div>
+</section>
+
+<main class="max-w-7xl mx-auto px-4 py-12">
+    <!-- 江南园林图片展示 -->
+    <section class="mb-16">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="title-line"></div>
+            <h2 class="text-2xl font-bold text-stone-800">江南园林影像</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="bg-white rounded-xl shadow overflow-hidden card-hover">
+                <img src="图片/拙政园-1.jpg" class="w-full h-56 object-cover" alt="拙政园全景">
+                <div class="p-4">
+                    <h3 class="font-bold text-lg text-stone-800">拙政园</h3>
+                    <p class="text-sm text-gray-600 mt-1">江南园林之首，苏州园林的代表</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow overflow-hidden card-hover">
+                <img src="图片/拙政园-2.jpg" class="w-full h-56 object-cover" alt="拙政园亭台">
+                <div class="p-4">
+                    <h3 class="font-bold text-lg text-stone-800">拙政园亭台</h3>
+                    <p class="text-sm text-gray-600 mt-1">精美的亭台楼阁建筑</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow overflow-hidden card-hover">
+                <img src="图片/留园-1.jpg" class="w-full h-56 object-cover" alt="留园">
+                <div class="p-4">
+                    <h3 class="font-bold text-lg text-stone-800">留园</h3>
+                    <p class="text-sm text-gray-600 mt-1">苏州四大名园之一</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow overflow-hidden card-hover">
+                <img src="图片/留园-2.jpg" class="w-full h-56 object-cover" alt="留园水景">
+                <div class="p-4">
+                    <h3 class="font-bold text-lg text-stone-800">留园水景</h3>
+                    <p class="text-sm text-gray-600 mt-1">精致的水景布局</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow overflow-hidden card-hover">
+                <img src="图片/留园-3.jpg" class="w-full h-56 object-cover" alt="留园假山">
+                <div class="p-4">
+                    <h3 class="font-bold text-lg text-stone-800">留园假山</h3>
+                    <p class="text-sm text-gray-600 mt-1">巧夺天工的假山石艺</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow overflow-hidden card-hover">
+                <img src="图片/苏州园林-1.jpg" class="w-full h-56 object-cover" alt="苏州园林">
+                <div class="p-4">
+                    <h3 class="font-bold text-lg text-stone-800">苏州园林</h3>
+                    <p class="text-sm text-gray-600 mt-1">中国古典园林的杰出代表</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow overflow-hidden card-hover">
+                <img src="图片/苏州园林-2.jpg" class="w-full h-56 object-cover" alt="苏州园林建筑">
+                <div class="p-4">
+                    <h3 class="font-bold text-lg text-stone-800">园林景观</h3>
+                    <p class="text-sm text-gray-600 mt-1">移步换景的艺术境界</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow overflow-hidden card-hover">
+                <img src="图片/苏州园林-3.jpg" class="w-full h-56 object-cover" alt="园林景观">
+                <div class="p-4">
+                    <h3 class="font-bold text-lg text-stone-800">园林建筑</h3>
+                    <p class="text-sm text-gray-600 mt-1">精美的建筑细节</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow overflow-hidden card-hover">
+                <img src="图片/颐和园-1.jpg" class="w-full h-56 object-cover" alt="颐和园">
+                <div class="p-4">
+                    <h3 class="font-bold text-lg text-stone-800">颐和园</h3>
+                    <p class="text-sm text-gray-600 mt-1">皇家园林的杰作</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 园林视频展示 -->
+    <section class="mb-16">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="title-line"></div>
+            <h2 class="text-2xl font-bold text-stone-800">园林视频</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl shadow overflow-hidden card-hover">
+                <div class="video-container">
+                    <video controls class="w-full">
+                        <source src="视频/园林景观航拍.mp4" type="video/mp4">
+                        您的浏览器不支持视频播放
+                    </video>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-bold text-lg text-stone-800">园林景观航拍</h3>
+                    <p class="text-sm text-gray-600 mt-1">从空中俯瞰中国园林的壮丽景观</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow overflow-hidden card-hover">
+                <div class="video-container">
+                    <video controls class="w-full">
+                        <source src="视频/3D复原圆明园遗址.mp4" type="video/mp4">
+                        您的浏览器不支持视频播放
+                    </video>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-bold text-lg text-stone-800">3D复原圆明园遗址</h3>
+                    <p class="text-sm text-gray-600 mt-1">数字技术再现万园之园的昔日辉煌</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 园林文字说明 -->
+    <section class="mb-16">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="title-line"></div>
+            <h2 class="text-2xl font-bold text-stone-800">江南园林介绍</h2>
+        </div>
+        <div class="bg-white rounded-2xl shadow p-8">
+            <p class="text-gray-700 leading-8 mb-6">
+                江南园林是中国古典园林的杰出代表，以苏州园林最为著名。江南园林追求"虽由人作，宛自天开"的艺术境界，通过精心设计的山水、建筑、植物和空间布局，创造出富有诗情画意的环境。
+            </p>
+            <p class="text-gray-700 leading-8 mb-6">
+                拙政园是江南园林之首，始建于明代，占地面积约5.2万平方米。园内山水相依，亭台楼阁错落有致，体现了中国园林"移步换景"的独特魅力。留园则以建筑艺术著称，被誉为"吴下名园之冠"。
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-amber-50 p-6 rounded-xl border-l-4 border-amber-600">
+                    <h4 class="font-bold text-amber-800 text-lg mb-3"><i class="fa-solid fa-gem mr-2"></i>建筑特色</h4>
+                    <ul class="text-gray-700 space-y-2">
+                        <li><i class="fa-solid fa-check text-amber-600 mr-2"></i>灵活多变的布局</li>
+                        <li><i class="fa-solid fa-check text-amber-600 mr-2"></i>精美的木雕和砖雕</li>
+                        <li><i class="fa-solid fa-check text-amber-600 mr-2"></i>粉墙黛瓦的素雅色调</li>
+                        <li><i class="fa-solid fa-check text-amber-600 mr-2"></i>亭、台、楼、阁、榭、轩等多样化建筑</li>
+                    </ul>
+                </div>
+                <div class="bg-amber-50 p-6 rounded-xl border-l-4 border-amber-600">
+                    <h4 class="font-bold text-amber-800 text-lg mb-3"><i class="fa-solid fa-leaf mr-2"></i>园林要素</h4>
+                    <ul class="text-gray-700 space-y-2">
+                        <li><i class="fa-solid fa-check text-amber-600 mr-2"></i>山水相依的景观布局</li>
+                        <li><i class="fa-solid fa-check text-amber-600 mr-2"></i>精心选种的植物配置</li>
+                        <li><i class="fa-solid fa-check text-amber-600 mr-2"></i>借景、框景、对景等造园手法</li>
+                        <li><i class="fa-solid fa-check text-amber-600 mr-2"></i>诗情画意的意境营造</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="bg-stone-100 p-6 rounded-xl">
+                <h4 class="font-bold text-stone-800 text-lg mb-3"><i class="fa-solid fa-quote-left mr-2"></i>著名园林</h4>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="text-center">
+                        <div class="bg-amber-600 text-white rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2 font-bold">1</div>
+                        <h5 class="font-bold">拙政园</h5>
+                        <p class="text-sm text-gray-600">江南园林之首</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="bg-amber-600 text-white rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2 font-bold">2</div>
+                        <h5 class="font-bold">留园</h5>
+                        <p class="text-sm text-gray-600">吴下名园之冠</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="bg-amber-600 text-white rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2 font-bold">3</div>
+                        <h5 class="font-bold">颐和园</h5>
+                        <p class="text-sm text-gray-600">皇家园林杰作</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="bg-amber-600 text-white rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2 font-bold">4</div>
+                        <h5 class="font-bold">网师园</h5>
+                        <p class="text-sm text-gray-600">小巧精致</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 返回按钮 -->
+    <div class="text-center">
+        <a href="exhibition-数字展厅.html" class="inline-flex items-center gap-2 bg-stone-800 text-white px-8 py-3 rounded-lg hover:bg-stone-700 transition">
+            <i class="fa-solid fa-arrow-left"></i> 返回数字展厅
+        </a>
+    </div>
+</main>
+
+<footer class="bg-stone-900 text-white py-8 text-center">
+    <p>© 2025 中国古典建筑电子博物馆 版权所有</p>
+    <p class="text-gray-400 text-sm mt-2">传承中华建筑文化 · 数字博物馆</p>
+</footer>
+
+</body>
+</html>

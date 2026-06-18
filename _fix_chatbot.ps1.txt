@@ -1,0 +1,84 @@
+# 修复 index.html 中的 chatbotWebSearchFallback 调用
+$file = "C:\Users\xuhui\Desktop\中国古代建筑电子博物馆\index.html"
+
+Write-Host "正在读取文件..." -ForegroundColor Cyan
+$content = Get-Content $file -Raw -Encoding UTF8
+
+# 检查是否有需要替换的内容
+if ($content -match 'chatbotWebSearchFallback') {
+    Write-Host "找到 chatbotWebSearchFallback，开始替换..." -ForegroundColor Yellow
+    
+    # 替换第1178行附近的调用（在 isCorrecting 判断中）
+    $content = $content -replace "            chatbotWebSearchFallback\(lastAskedQuestion\);", "            addChatMessage('抱歉我说错了！请你直接告诉我正确的答案好吗？我会记住的！');`n            waitingForAnswer = lastAskedQuestion;"
+    
+    # 替换第1192行附近的调用（在 setTimeout 中）
+    $oldCode = @"
+                // 尝试网络搜索
+                lastAskedQuestion = text;
+                chatbotWebSearchFallback(text);
+"@
+    
+    $newCode = @"
+                // 本地知识库没有，尝试网络搜索
+                lastAskedQuestion = text;
+                
+                // 显示搜索提示
+                addChatMessage('🔍 正在从维基百科搜索中...', false);
+                
+                // 使用维基百科API搜索
+                var wikiUrl = 'https://zh.wikipedia.org/w/api.php?action=query&list=search&srsearch=' + encodeURIComponent(text) + '&format=json&origin=*';
+                
+                fetch(wikiUrl)
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        if (data.query && data.query.search && data.query.search.length > 0) {
+                            var title = data.query.search[0].title;
+                            var extractUrl = 'https://zh.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&titles=' + encodeURIComponent(title) + '&format=json&origin=*';
+                            return fetch(extractUrl);
+                        } else {
+                            throw new Error('No results');
+                        }
+                    })
+                    .then(function(res) { return res.json(); })
+                    .then(function(data2) {
+                        var pages = data2.query.pages;
+                        var page = Object.values(pages)[0];
+                        
+                        if (page && page.extract && page.extract.length > 50) {
+                            var resultAnswer = page.extract.substring(0, 500);
+                            var resultHtml = resultAnswer + 
+                                '<br><br><small style="color:#9ca3af;">📖 来源：<a href="https://zh.wikipedia.org/wiki/' + encodeURIComponent(page.title) + '" target="_blank" style="color:#92400e;">' + page.title + ' (维基百科)</a></small>' +
+                                '<br><br><small style="color:#92400e;font-weight:bold;">🤔 这个答案正确吗？</small><br>' +
+                                '<small style="color:#b45309;">✅ 如果正确，请回复 <b>"很好"</b> 或 <b>"正确"</b>，我会记住！</small><br>' +
+                                '<small style="color:#dc2626;">❌ 如果不对，请回复 <b>"不对"</b>，或直接告诉我正确答案。</small>';
+                            
+                            addChatMessage(resultHtml, false);
+                            window.lastSearchResult = resultAnswer;
+                            window.lastSearchQuestion = text;
+                        } else {
+                            throw new Error('No extract');
+                        }
+                    })
+                    .catch(function(e) {
+                        console.warn('[网络搜索] 失败:', e);
+                        addChatMessage(
+                            '抱歉，我在维基百科中没有找到关于"<b>' + 
+                            text.replace(/</g, '&lt;').replace(/>/g, '&gt;') + 
+                            '</b>"的答案。<br><br>💡 <b>你能回答这个问题吗？</b>请直接输入正确答案，我会记住并存入云端数据库！'
+                        );
+                        waitingForAnswer = text;
+                    });
+"@
+    
+    $content = $content -replace [regex]::Escape($oldCode), $newCode
+    
+    # 保存文件
+    Set-Content $file $content -Encoding UTF8 -NoNewline
+    Write-Host "✅ 替换成功！" -ForegroundColor Green
+    Write-Host "请刷新浏览器（Ctrl + Shift + R）后测试" -ForegroundColor Cyan
+} else {
+    Write-Host "✅ 没有找到 chatbotWebSearchFallback，可能已经修复过了" -ForegroundColor Green
+}
+
+Write-Host "`n按任意键退出..." -ForegroundColor Gray
+$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")

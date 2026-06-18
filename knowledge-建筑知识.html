@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>建筑知识 - 中国古典建筑电子博物馆</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.css">
+    <script src="chatbot-intelligent.js"></script>
+    <script src="data-miner.js"></script>
+    <script src="dynamic-knowledge-base.js"></script>
+    <script src="web-search.js"></script>
+    <style>
+        body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: #f9fafb; }
+        .card-hover { transition: 0.3s; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.08); }
+        .title-line { width: 60px; height: 3px; background: #92400e; }
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; }
+        .video-container video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .chatbot-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
+        .chatbot-toggle:hover { transform: scale(1.1); }
+        .chatbot-window { position: absolute; bottom: 80px; right: 0; width: 380px; max-height: 550px; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); display: none; flex-direction: column; overflow: hidden; }
+        .chatbot-window.active { display: flex; }
+
+        /* 聊天消息动画 */
+        .chat-message { margin-bottom: 16px; animation: slideIn 0.3s ease; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .chat-message.bot { display: flex; gap: 10px; }
+        .chat-message.bot .avatar {
+            width: 35px; height: 35px; border-radius: 50%;
+            background: linear-gradient(135deg, #92400e, #d97706);
+            display: flex; align-items: center; justify-content: center;
+            color: white; flex-shrink: 0;
+        }
+        .chat-message.user { text-align: right; }
+        .chat-message.user .message-content {
+            background: #92400e; color: white;
+            padding: 12px 16px; border-radius: 18px 18px 4px 18px;
+            display: inline-block; max-width: 80%;
+        }
+        .chat-message.bot .message-content {
+            background: #f3f4f6; padding: 12px 16px;
+            border-radius: 18px 18px 18px 4px;
+            max-width: 85%; line-height: 1.6;
+        }
+        /* 语音输入按钮脉冲动画 */
+        #voiceInputBtn { transition: all 0.3s; }
+        #voiceInputBtn.listening {
+            animation: voicePulse 1.2s ease-in-out infinite;
+            background: #dc2626 !important;
+        }
+        @keyframes voicePulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.5); }
+            50% { box-shadow: 0 0 0 14px rgba(220,38,38,0); }
+        }
+        /* 打字指示器 */
+        .typing-indicator {
+            display: flex; gap: 4px; padding: 12px 16px;
+        }
+        .typing-indicator span {
+            width: 8px; height: 8px; background: #9ca3af;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        .typing-indicator span:nth-child(1) { animation-delay: 0s; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-8px); }
+        }
+
+        /* ======== 横向时间轴 ======== */
+        .timeline-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 20px 0 10px;
+            cursor: grab;
+        }
+        .timeline-scroll:active { cursor: grabbing; }
+        .timeline-scroll::-webkit-scrollbar { height: 6px; }
+        .timeline-scroll::-webkit-scrollbar-thumb {
+            background: linear-gradient(90deg, #b45309, #d97706, #eab308, #84cc16, #10b981, #ef4444, #6366f1);
+            border-radius: 3px;
+        }
+        .timeline-scroll::-webkit-scrollbar-track { background: #f5f0eb; border-radius: 3px; }
+
+        .timeline-track {
+            display: flex;
+            gap: 0;
+            position: relative;
+            min-width: max-content;
+            padding: 0 20px 60px;
+        }
+        /* 渐变连线 */
+        .timeline-track::before {
+            content: '';
+            position: absolute;
+            bottom: 60px;
+            left: 20px;
+            right: 20px;
+            height: 5px;
+            background: linear-gradient(90deg,
+                #92400e 0%, #b45309 12%, #d97706 25%,
+                #eab308 37%, #84cc16 50%, #10b981 62%,
+                #ef4444 75%, #6366f1 88%, #7c3aed 100%
+            );
+            border-radius: 3px;
+            z-index: 0;
+        }
+
+        .timeline-item {
+            flex-shrink: 0;
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            padding: 0 12px;
+        }
+
+        .timeline-card {
+            width: 100%;
+            background: white;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-bottom: 28px;
+        }
+        .timeline-item:hover .timeline-card {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+        }
+        .timeline-card-img {
+            height: 140px;
+            width: 100%;
+            object-fit: cover;
+        }
+        .timeline-card-body { padding: 14px 16px; text-align: center; }
+        .timeline-card-body h4 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #292524;
+        }
+        .timeline-card-body .dynasty-sub {
+            font-size: 11px;
+            color: #78716c;
+            margin-bottom: 8px;
+        }
+        .timeline-card-body p {
+            font-size: 12px;
+            color: #57534e;
+            line-height: 1.6;
+        }
+
+        /* 节点圆圈 */
+        .timeline-node {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            z-index: 2;
+            box-shadow: 0 0 0 6px #f9fafb, 0 4px 18px rgba(0,0,0,0.13);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .timeline-item:hover .timeline-node {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 8px #f9fafb, 0 6px 24px rgba(0,0,0,0.18);
+        }
+        .timeline-node i { font-size: 18px; }
+
+        /* 年份标签 */
+        .timeline-year {
+            margin-top: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #78716c;
+            letter-spacing: .5px;
+        }
+
+        /* 左右导航按钮 */
+        .timeline-nav {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 8px;
+            margin-bottom: 12px;
+        }
+        .timeline-nav button {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            border: 1.5px solid #d6d3d1;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s;
+            color: #78716c;
+            font-size: 15px;
+        }
+        .timeline-nav button:hover {
+            border-color: #b45309;
+            background: #fffbeb;
+            color: #b45309;
+            box-shadow: 0 2px 8px rgba(180,83,9,0.15);
+        }
+
+        /* 底部朝代小圆点指示器 */
+        .timeline-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .timeline-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: #d6d3d1;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .timeline-dot.active { background: #b45309; transform: scale(1.35); }
+    </style>
+</head>
+<body>
+
+<header class="bg-stone-900 text-white sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-building-columns text-2xl text-amber-500"></i>
+            <span class="text-xl font-bold">中国古典建筑电子博物馆</span>
+        </div>
+        <nav class="hidden md:flex gap-8">
+            <a href="index.html" class="hover:text-amber-400 transition">首页</a>
+            <a href="knowledge-建筑知识.html" class="text-amber-400 font-medium">建筑知识</a>
+            <a href="shuzitujian-数字图鉴.html" class="hover:text-amber-400 transition">代表建筑</a>
+            <a href="exhibition-数字展厅.html" class="hover:text-amber-400 transition">数字展厅</a>
+            <a href="3d-building.html" class="hover:text-amber-400 transition">3D课堂</a>
+            <a href="quiz-challenge-闯关测验.html" class="hover:text-amber-400 transition">闯关测验</a>
+            <a href="aboutus-关于我们.html" class="hover:text-amber-400 transition">关于我们</a>
+        </nav>
+    </div>
+</header>
+
+<section class="relative h-64 bg-cover bg-center flex items-center justify-center text-white" style="background-image: url('图片/颐和园-1.jpg');">
+    <div class="absolute w-full h-full bg-black/50"></div>
+    <div class="relative z-10 text-center px-4">
+        <h1 class="text-4xl md:text-5xl font-bold mb-2">建筑知识</h1>
+        <p class="text-lg opacity-90">探索中国古典建筑的千年智慧与文化</p>
+    </div>
+</section>
+
+<main class="max-w-7xl mx-auto px-4 py-12">
+
+    <!-- ==================== 横向滚动时间轴 ==================== -->
+    <section class="mb-16">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="title-line"></div>
+            <h2 class="text-2xl font-bold text-stone-800">建筑史时间轴</h2>
+            <span class="text-xs text-stone-400 ml-2">← 左右滑动探索 →</span>
+        </div>
+        <div class="bg-stone-50 rounded-3xl py-8 px-2 shadow-inner">
+            <!-- 导航按钮 -->
+            <div class="timeline-nav">
+                <button onclick="scrollTimeline(-1)" title="向左滚动"><i class="fa-solid fa-chevron-left"></i></button>
+                <button id="timelinePlayBtn" onclick="toggleTimelinePlay()" title="暂停自动滚动" style="border-color:#b45309;background:#fffbeb;color:#b45309;">
+                    <i id="timelinePlayIcon" class="fa-solid fa-pause"></i>
+                </button>
+                <button onclick="scrollTimeline(1)" title="向右滚动"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <!-- 滚动容器 -->
+            <div class="timeline-scroll" id="timelineScroll" onscroll="updateTimelineDots()">
+                <div class="timeline-track" id="timelineTrack">
+                    <!-- 夏商周 -->
+                    <div class="timeline-item" data-index="0">
+                        <div class="timeline-card">
+                            <img class="timeline-card-img" src="图片/商朝宫殿图.png" alt="夏商周建筑" loading="lazy">
+                            <div class="timeline-card-body">
+                                <h4>夏·商·周</h4>
+                                <div class="dynasty-sub">约前2070–前256年</div>
+                                <p>夯土技术成熟，木构架体系初步形成。商代宫殿"四阿重屋"，西周出现完整院落。</p>
+                            </div>
+                        </div>
+                        <div class="timeline-node" style="background:linear-gradient(135deg,#92400e,#b45309);color:white;">
+                            <i class="fa-solid fa-landmark"></i>
+                        </div>
+                        <div class="timeline-year">⚒ 木构萌芽 · 宫殿初立</div>
+                    </div>
+
+                    <!-- 秦汉 -->
+                    <div class="timeline-item" data-index="1">
+                        <div class="timeline-card">
+                            <img class="timeline-card-img" src="图片/秦始皇皇陵.webp" alt="秦汉建筑" loading="lazy">
+                            <div class="timeline-card-body">
+                                <h4>秦·汉</h4>
+                                <div class="dynasty-sub">前221–220年</div>
+                                <p>大一统帝国形成，阿房宫、未央宫规模空前。长城万里横亘，砖石技术大发展。</p>
+                            </div>
+                        </div>
+                        <div class="timeline-node" style="background:linear-gradient(135deg,#b45309,#d97706);color:white;">
+                            <i class="fa-solid fa-torii-gate"></i>
+                        </div>
+                        <div class="timeline-year">🏯 宫苑宏伟 · 长城横空</div>
+                    </div>
+
+                    <!-- 魏晋南北朝 -->
+                    <div class="timeline-item" data-index="2">
+                        <div class="timeline-card">
+                            <img class="timeline-card-img" src="图片/龙门石窟-1.png" alt="魏晋南北朝建筑" loading="lazy">
+                            <div class="timeline-card-body">
+                                <h4>魏晋南北朝</h4>
+                                <div class="dynasty-sub">220–589年</div>
+                                <p>佛教传入，寺庙佛塔大量兴建。云冈、龙门石窟开凿，建筑风格趋向秀逸。</p>
+                            </div>
+                        </div>
+                        <div class="timeline-node" style="background:linear-gradient(135deg,#d97706,#eab308);color:white;">
+                            <i class="fa-solid fa-place-of-worship"></i>
+                        </div>
+                        <div class="timeline-year">🛕 佛寺林立 · 石窟造极</div>
+                    </div>
+
+                    <!-- 隋唐 -->
+                    <div class="timeline-item" data-index="3">
+                        <div class="timeline-card">
+                            <img class="timeline-card-img" src="图片/大明宫.jpeg" alt="隋唐建筑" loading="lazy">
+                            <div class="timeline-card-body">
+                                <h4>隋·唐</h4>
+                                <div class="dynasty-sub">581–907年</div>
+                                <p>建筑艺术巅峰。大明宫气吞山河，大雁塔巍然矗立，赵州桥敞肩拱世界首创。</p>
+                            </div>
+                        </div>
+                        <div class="timeline-node" style="background:linear-gradient(135deg,#eab308,#f59e0b);color:white;">
+                            <i class="fa-solid fa-archway"></i>
+                        </div>
+                        <div class="timeline-year">👑 盛唐气象 · 万国来朝</div>
+                    </div>
+
+                    <!-- 宋辽金 -->
+                    <div class="timeline-item" data-index="4">
+                        <div class="timeline-card">
+                            <img class="timeline-card-img" src="图片/拙政园-1.jpg" alt="宋辽金建筑" loading="lazy">
+                            <div class="timeline-card-body">
+                                <h4>宋·辽·金</h4>
+                                <div class="dynasty-sub">960–1279年</div>
+                                <p>《营造法式》集大成，以材为祖。园林艺术兴起，建筑风格趋于精致典雅。</p>
+                            </div>
+                        </div>
+                        <div class="timeline-node" style="background:linear-gradient(135deg,#84cc16,#22c55e);color:white;">
+                            <i class="fa-solid fa-scroll"></i>
+                        </div>
+                        <div class="timeline-year">📜 营造法式 · 园林精雅</div>
+                    </div>
+
+                    <!-- 元 -->
+                    <div class="timeline-item" data-index="5">
+                        <div class="timeline-card">
+                            <img class="timeline-card-img" src="图片/布达拉宫-1.jpg" alt="元代建筑" loading="lazy">
+                            <div class="timeline-card-body">
+                                <h4>元</h4>
+                                <div class="dynasty-sub">1271–1368年</div>
+                                <p>元大都规划宏大，藏传佛教建筑兴起。妙应寺白塔矗立京城，多民族风格交融。</p>
+                            </div>
+                        </div>
+                        <div class="timeline-node" style="background:linear-gradient(135deg,#10b981,#059669);color:white;">
+                            <i class="fa-solid fa-fort-awesome"></i>
+                        </div>
+                        <div class="timeline-year">🐎 大都雄峙 · 藏汉交融</div>
+                    </div>
+
+                    <!-- 明 -->
+                    <div class="timeline-item" data-index="6">
+                        <div class="timeline-card">
+                            <img class="timeline-card-img" src="图片/故宫-1.png" alt="明代建筑" loading="lazy">
+                            <div class="timeline-card-body">
+                                <h4>明</h4>
+                                <div class="dynasty-sub">1368–1644年</div>
+                                <p>故宫巍峨落成，天坛祈年殿精妙绝伦。砖石长城巩固边防，建筑规制趋于大成。</p>
+                            </div>
+                        </div>
+                        <div class="timeline-node" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;">
+                            <i class="fa-solid fa-building-columns"></i>
+                        </div>
+                        <div class="timeline-year">🏰 故宫巍峨 · 规制大成</div>
+                    </div>
+
+                    <!-- 清 -->
+                    <div class="timeline-item" data-index="7">
+                        <div class="timeline-card">
+                            <img class="timeline-card-img" src="图片/颐和园-1.jpg" alt="清代建筑" loading="lazy">
+                            <div class="timeline-card-body">
+                                <h4>清</h4>
+                                <div class="dynasty-sub">1644–1911年</div>
+                                <p>颐和园、圆明园集园林之大成，承德避暑山庄融汇汉藏蒙。中国古典建筑最后辉煌。</p>
+                            </div>
+                        </div>
+                        <div class="timeline-node" style="background:linear-gradient(135deg,#6366f1,#4f46e5);color:white;">
+                            <i class="fa-solid fa-tree-city"></i>
+                        </div>
+                        <div class="timeline-year">🌿 园林臻盛 · 集古大成</div>
+                    </div>
+                </div>
+            </div>
+            <!-- 圆点指示器 -->
+            <div class="timeline-dots" id="timelineDots">
+                <span class="timeline-dot active" onclick="scrollToTimelineItem(0)"></span>
+                <span class="timeline-dot" onclick="scrollToTimelineItem(1)"></span>
+                <span class="timeline-dot" onclick="scrollToTimelineItem(2)"></span>
+                <span class="timeline-dot" onclick="scrollToTimelineItem(3)"></span>
+                <span class="timeline-dot" onclick="scrollToTimelineItem(4)"></span>
+                <span class="timeline-dot" onclick="scrollToTimelineItem(5)"></span>
+                <span class="timeline-dot" onclick="scrollToTimelineItem(6)"></span>
+                <span class="timeline-dot" onclick="scrollToTimelineItem(7)"></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 中国建筑史 -->
+    <section class="mb-16">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="title-line"></div>
+            <h2 class="text-2xl font-bold text-stone-800">中国建筑史</h2>
+        </div>
+        <div class="bg-white rounded-2xl shadow p-6 card-hover">
+            <img src="图片/故宫-1.png" class="rounded-lg w-full h-64 object-cover mb-4" alt="中国建筑史">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                <div class="bg-amber-50 p-4 rounded-lg flex items-start gap-3">
+                    <img src="图片/河姆渡遗址.webp" class="w-28 h-20 object-cover rounded flex-shrink-0" alt="河姆渡遗址">
+                    <div class="flex-1">
+                        <h3 class="text-lg font-bold text-amber-800 mb-2"><i class="fa-solid fa-crown mr-2"></i>原始社会时期</h3>
+                        <p class="text-gray-700 text-sm">从穴居、巢居发展到地面建筑，奠定了中国建筑的基础。河姆渡遗址的干栏式建筑、半坡遗址的半穴居建筑是这一时期的典型代表。</p>
+                    </div>
+                </div>
+                <div class="bg-amber-50 p-4 rounded-lg flex items-start gap-3">
+                    <img src="图片/商朝宫殿图.png" class="w-28 h-20 object-cover rounded flex-shrink-0" alt="夏商周宫殿遗址">
+                    <div class="flex-1">
+                        <h3 class="text-lg font-bold text-amber-800 mb-2"><i class="fa-solid fa-landmark mr-2"></i>夏商周时期</h3>
+                        <p class="text-gray-700 text-sm">夯土技术成熟，木构架体系初步形成。商代宫殿遗址、周代礼制建筑的出现，标志着中国建筑体系的建立。</p>
+                    </div>
+                </div>
+                <div class="bg-amber-50 p-4 rounded-lg flex items-start gap-3">
+                    <img src="图片/秦始皇皇陵.webp" class="w-28 h-20 object-cover rounded flex-shrink-0" alt="秦始皇陵">
+                    <div class="flex-1">
+                        <h3 class="text-lg font-bold text-amber-800 mb-2"><i class="fa-solid fa-torii-gate mr-2"></i>秦汉时期</h3>
+                        <p class="text-gray-700 text-sm">大一统国家形成，建筑规模空前。阿房宫、秦始皇陵、汉代宫苑等大型建筑群展现了雄伟气魄。</p>
+                    </div>
+                </div>
+                <div class="bg-amber-50 p-4 rounded-lg flex items-start gap-3">
+                    <img src="图片/龙门石窟-1.png" class="w-32 h-24 object-contain rounded flex-shrink-0" alt="龙门石窟">
+                    <div class="flex-1">
+                        <h3 class="text-lg font-bold text-amber-800 mb-2"><i class="fa-solid fa-place-of-worship mr-2"></i>魏晋南北朝</h3>
+                        <p class="text-gray-700 text-sm">佛教传入，寺庙、佛塔大量兴建。建筑技术精炼，风格趋向秀丽。云冈石窟、龙门石窟等石窟艺术达到高峰。</p>
+                    </div>
+                </div>
+                <div class="bg-amber-50 p-4 rounded-lg flex items-start gap-3">
+                    <img src="图片/大明宫.jpeg" class="w-28 h-20 object-cover rounded flex-shrink-0" alt="大明宫">
+                    <div class="flex-1">
+                        <h3 class="text-lg font-bold text-amber-800 mb-2"><i class="fa-solid fa-dragon mr-2"></i>隋唐时期</h3>
+                        <p class="text-gray-700 text-sm">建筑艺术达到巅峰。大明宫、大雁塔等建筑气势恢宏、结构严谨。宋代《营造法式》总结了前人经验。</p>
+                    </div>
+                </div>
+                <div class="bg-amber-50 p-4 rounded-lg flex items-start gap-3">
+                    <img src="图片/故宫-1.png" class="w-28 h-20 object-cover rounded flex-shrink-0" alt="明清建筑">
+                    <div class="flex-1">
+                        <h3 class="text-lg font-bold text-amber-800 mb-2"><i class="fa-solid fa-archway mr-2"></i>明清时期</h3>
+                        <p class="text-gray-700 text-sm">建筑风格趋向精致、规范。故宫、天坛、颐和园等皇家建筑集历代建筑艺术之大成，达到中国古典建筑的最后辉煌。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 中国建筑流派 -->
+    <section class="mb-16">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="title-line"></div>
+            <h2 class="text-2xl font-bold text-stone-800">中国建筑流派</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white rounded-xl shadow p-6 card-hover">
+                <img src="图片/故宫-2.jpg" class="rounded-lg w-full h-40 object-cover mb-4" alt="北方建筑流派">
+                <h3 class="text-xl font-bold mb-2 text-stone-800">北方建筑流派</h3>
+                <p class="text-gray-600 text-sm mb-3">以北京四合院、故宫为代表，风格庄重、对称、色彩浓烈，体现皇家气派和北方建筑特色。</p>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li><i class="fa-solid fa-check text-amber-600 mr-2"></i>严格的中轴对称布局</li>
+                    <li><i class="fa-solid fa-check text-amber-600 mr-2"></i>厚重的墙体和屋顶</li>
+                    <li><i class="fa-solid fa-check text-amber-600 mr-2"></i>红墙黄瓦的色彩搭配</li>
+                </ul>
+            </div>
+            <div class="bg-white rounded-xl shadow p-6 card-hover">
+                <img src="图片/拙政园-1.jpg" class="rounded-lg w-full h-40 object-cover mb-4" alt="江南建筑流派">
+                <h3 class="text-xl font-bold mb-2 text-stone-800">江南建筑流派</h3>
+                <p class="text-gray-600 text-sm mb-3">以苏州园林、徽派建筑为代表，风格秀丽、灵动、色彩淡雅，体现文人审美和江南水乡特色。</p>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li><i class="fa-solid fa-check text-amber-600 mr-2"></i>灵活的布局和空间变化</li>
+                    <li><i class="fa-solid fa-check text-amber-600 mr-2"></i>精细的木雕和砖雕</li>
+                    <li><i class="fa-solid fa-check text-amber-600 mr-2"></i>粉墙黛瓦的素雅色调</li>
+                </ul>
+            </div>
+            <div class="bg-white rounded-xl shadow p-6 card-hover">
+                <img src="图片/土楼-1.jpg" class="rounded-lg w-full h-40 object-cover mb-4" alt="地域建筑流派">
+                <h3 class="text-xl font-bold mb-2 text-stone-800">地域建筑流派</h3>
+                <p class="text-gray-600 text-sm mb-3">包括福建土楼、陕北窑洞、西南干栏式等，因地制宜，充分体现地域文化和气候环境。</p>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li><i class="fa-solid fa-check text-amber-600 mr-2"></i>因地制宜的建造方式</li>
+                    <li><i class="fa-solid fa-check text-amber-600 mr-2"></i>就地取材的建筑材料</li>
+                    <li><i class="fa-solid fa-check text-amber-600 mr-2"></i>独特的防御和居住功能</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- 杰出科学家 -->
+    <section class="mb-16">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="title-line"></div>
+            <h2 class="text-2xl font-bold text-stone-800">杰出建筑科学家</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl shadow p-6 card-hover">
+                <div class="flex items-start gap-4">
+                    <div class="w-24 h-24 rounded-full overflow-hidden flex-shrink-0 border-4 border-amber-200">
+                        <img src="图片/李诫-1.png" class="w-full h-full object-cover" alt="李诫">
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2 text-stone-800">李诫</h3>
+                        <p class="text-amber-700 font-medium mb-2">北宋建筑师 · 著《营造法式》</p>
+                        <p class="text-gray-600 text-sm">李诫是北宋时期的著名建筑师，编撰的《营造法式》是中国古代最完整的建筑技术书籍，系统总结了宋代以前的建筑经验，对中国建筑发展产生深远影响。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow p-6 card-hover">
+                <div class="flex items-start gap-4">
+                    <div class="w-24 h-24 rounded-full overflow-hidden flex-shrink-0 border-4 border-amber-200">
+                        <img src="图片/鲁班.png" class="w-full h-full object-cover" alt="鲁班">
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2 text-stone-800">鲁班</h3>
+                        <p class="text-amber-700 font-medium mb-2">春秋时期工匠 · 被尊为建筑鼻祖</p>
+                        <p class="text-gray-600 text-sm">鲁班是中国古代著名的工匠，被后世尊为建筑行业的祖师爷。传说中他发明了许多木工工具，如锯、刨、钻、墨斗等，为古代建筑技术的发展作出了重要贡献。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow p-6 card-hover">
+                <div class="flex items-start gap-4">
+                    <div class="w-24 h-24 rounded-full overflow-hidden flex-shrink-0 border-4 border-amber-200">
+                        <img src="图片/喻皓.png" class="w-full h-full object-cover" alt="喻皓">
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2 text-stone-800">喻皓</h3>
+                        <p class="text-amber-700 font-medium mb-2">北宋建筑师 · 建造开封开宝寺塔</p>
+                        <p class="text-gray-600 text-sm">喻皓是北宋时期的建筑大师，主持建造了开封开宝寺塔等多座重要建筑。他在建筑结构、施工技术方面有很高造诣，其著作《木经》虽已失传，但影响深远。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow p-6 card-hover">
+                <div class="flex items-start gap-4">
+                    <div class="w-24 h-24 rounded-full overflow-hidden flex-shrink-0 border-4 border-amber-200">
+                        <img src="图片/梁思成.png" class="w-full h-full object-cover" alt="梁思成">
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2 text-stone-800">梁思成</h3>
+                        <p class="text-amber-700 font-medium mb-2">现代建筑学家 · 古建筑保护先驱</p>
+                        <p class="text-gray-600 text-sm">梁思成是中国现代建筑学的奠基人，毕生致力于中国古代建筑的研究和保护。他主持测绘了大量古建筑，著有《中国建筑史》等重要著作，为古建筑研究和保护作出卓越贡献。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 视频内容 -->
+    <section class="mb-16">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="title-line"></div>
+            <h2 class="text-2xl font-bold text-stone-800">建筑知识视频学习</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl shadow overflow-hidden card-hover">
+                <div class="video-container">
+                    <video controls class="w-full">
+                        <source src="视频/中国古建筑屋顶知识.mp4" type="video/mp4">
+                        您的浏览器不支持视频播放
+                    </video>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-bold text-lg text-stone-800">中国古建筑屋顶知识</h3>
+                    <p class="text-sm text-gray-600 mt-1">了解中国古建筑多样的屋顶形式与文化内涵</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow overflow-hidden card-hover">
+                <div class="video-container">
+                    <video controls class="w-full">
+                        <source src="视频/中国古典建筑的艺术成就.mp4" type="video/mp4">
+                        您的浏览器不支持视频播放
+                    </video>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-bold text-lg text-stone-800">中国古典建筑的艺术成就</h3>
+                    <p class="text-sm text-gray-600 mt-1">领略中国古典建筑的艺术魅力与美学价值</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="bg-stone-900 text-white py-8 text-center">
+    <p>© 2025 中国古典建筑电子博物馆 版权所有</p>
+    <p class="text-gray-400 text-sm mt-2">传承中华建筑文化 · 数字博物馆</p>
+</footer>
+
+<!-- 智能问答机器人 -->
+<div class="chatbot-container">
+    <button onclick="toggleChatWindow()" style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#92400e,#d97706);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 15px rgba(146,64,14,0.4);transition:transform 0.3s;border:none;position:fixed;bottom:20px;right:20px;z-index:1000;">
+        <i class="fa-solid fa-comments" style="color:white;font-size:24px;"></i>
+    </button>
+    <div id="chatbotWindow" style="position:fixed;bottom:90px;right:20px;width:380px;max-height:550px;background:white;border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,0.15);display:none;flex-direction:column;overflow:hidden;z-index:1000;">
+        <div style="background:linear-gradient(135deg,#92400e,#d97706);padding:20px;color:white;display:flex;align-items:center;gap:12px;">
+            <div style="width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.4);">
+                <i class="fa-solid fa-robot" style="font-size:24px;"></i>
+            </div>
+            <div>
+                <h3 style="font-weight:bold;font-size:18px;margin:0;">智能学习小助手</h3>
+                <p style="font-size:12px;opacity:0.8;margin:0;">您好，我是您的智能建筑顾问</p>
+            </div>
+        </div>
+        <div id="chatbotContent" style="flex:1;overflow-y:auto;padding:20px;max-height:400px;">
+            <div style="margin-bottom:16px;display:flex;align-items:flex-start;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#92400e,#d97706);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="fa-solid fa-robot" style="color:white;font-size:16px;"></i>
+                </div>
+                <div style="background:#f3f4f6;padding:12px 16px;border-radius:18px 18px 18px 4px;max-width:80%;">
+                    您好！我是智能学习小助手，很高兴为您解答关于中国传统建筑的各种问题。
+                </div>
+            </div>
+        </div>
+        <div style="border-top:1px solid #e5e7eb;padding:12px;background:#f9fafb;">
+            <div style="display:flex;gap:8px;">
+                <input type="text" id="chatInput" placeholder="输入您的问题..." style="flex:1;padding:12px 16px;border:1px solid #d1d5db;border-radius:24px;outline:none;font-size:14px;pointer-events:auto;">
+                <button id="voiceInputBtn" onclick="toggleVoiceInput()" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#92400e,#d97706);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;flex-shrink:0;">
+                    <i class="fa-solid fa-microphone" style="color:white;font-size:18px;"></i>
+                </button>
+                <button onclick="chatSend()" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#92400e,#d97706);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;flex-shrink:0;">
+                    <i class="fa-solid fa-paper-plane" style="color:white;"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="file-qa-store.js"></script>
+<script>
+const qaDatabase=[{keywords:['斗拱','作用','功能'],answer:'斗拱具有多重作用：1) 承重，将屋面荷载传递到柱子；2) 装饰，体现建筑等级和美学；3) 防震，通过榫卯连接的弹性减少地震对建筑的影响；4) 调节比例，使建筑外观更协调美观。'},{keywords:['宫殿','宫殿建筑','特点'],answer:'宫殿建筑是中国古代皇家建筑的最高形式。特点包括：1) 中轴对称布局，体现皇权至上；2) 黄色琉璃瓦屋顶，象征皇室尊贵；3) 斗拱飞檐，雕梁画栋；4) 大量使用吉祥图案，如龙、凤、祥云等；5) 规模宏大，气势恢宏。著名的宫殿建筑有故宫、沈阳故宫、承德避暑山庄等。'},{keywords:['著名宫殿','哪些宫殿'],answer:'中国著名的宫殿包括：1) 北京故宫，明清两朝皇宫；2) 沈阳故宫，清初皇宫；3) 承德避暑山庄，清代皇帝夏宫；4) 阿房宫，秦朝著名宫殿（已毁）；5) 大明宫，唐朝皇宫（已毁）；6) 未央宫，汉朝皇宫（已毁）。'},{keywords:['建筑材料','主要材料'],answer:'中国传统建筑主要使用：1) 木材，作为主要结构材料；2) 砖瓦，用于墙体和屋面；3) 石材，用于基础、台阶和装饰；4) 土，用于夯土墙和窑洞；5) 竹材，用于南方地区建筑；6) 灰浆，使用石灰、糯米浆等作为粘合剂。'},{keywords:['木材','为什么用木头','古代建筑木头'],answer:'古代建筑使用木材的原因包括：1) 中国森林资源丰富；2) 木材易于加工；3) 木结构抗震性能好；4) 木材有温暖的触感，符合中国人的审美；5) 木材象征着生机和成长。'},{keywords:['屋顶','屋顶形式','有哪些屋顶'],answer:'中国传统建筑屋顶形式多样，主要包括：1) 庑殿顶，最高等级，用于重要宫殿；2) 歇山顶，用于次要宫殿和庙宇；3) 硬山顶，用于普通民居；4) 悬山顶，用于南方民居；5) 攒尖顶，用于亭、塔等建筑。'},{keywords:['庑殿顶','什么是庑殿顶'],answer:'庑殿顶是中国传统建筑的最高等级屋顶形式，由四个倾斜的坡面组成，四角各有垂脊，顶部有正脊。庑殿顶庄重大气，通常用于皇宫、庙宇等最重要的建筑，如太和殿就是典型的庑殿顶。'},{keywords:['民居','民居建筑','有哪些民居'],answer:'中国民居建筑因地而异，主要类型有：北方四合院、南方天井式民居、山区吊脚楼、黄土高原窑洞、客家土楼、徽派建筑（马头墙）、蒙古包、傣族竹楼、藏族碉房等。'},{keywords:['四合院','什么是四合院'],answer:'四合院是中国北方传统的民居形式，由正房、东西厢房、倒座房围合而成，中间是天井。四合院的特点包括：封闭独立，便于家族生活；坐北朝南，采光充足；有明确的等级秩序；冬暖夏凉，适合北方气候。'},{keywords:['徽派建筑','特点','风格'],answer:'徽派建筑是明清时期徽州地区的传统建筑风格。特点包括：1) 马头墙，防火防风；2) 精美的砖雕、木雕、石雕；3) 白墙黑瓦，色彩素雅；4) 天井布局，通风采光；5) 讲究风水，布局严谨。'},{keywords:['防御','防御工程','防御建筑'],answer:'中国古代防御工程主要包括：1) 长城，世界最长的防御工程；2) 城墙和城门，如西安古城墙、平遥古城墙；3) 关隘，如山海关、嘉峪关、居庸关等；4) 烽火台，用于传递军情；5) 护城河，围绕城市的水上防御设施。'},{keywords:['烽火台','作用','用途'],answer:'烽火台是古代传递军情的军事设施，通常建在山头或视野开阔处。发现敌情时，白天燃烟，夜晚举火，通过烽火台网络快速传递信息。烽火台是古代重要的通讯手段。'},{keywords:['关隘','著名关隘'],answer:'中国著名的关隘包括：1) 山海关，"天下第一关"；2) 嘉峪关，长城西端起点；3) 居庸关，京畿门户；4) 雁门关，"九塞尊崇第一关"；5) 剑门关，蜀道咽喉；6) 娘子关等。'},{keywords:['风水','建筑风水'],answer:'风水是中国传统建筑选址和布局的重要考量，强调人与自然环境的和谐。基本原则包括：1) 负阴抱阳，背山面水；2) 山环水抱，藏风聚气；3) 坐北朝南，采光充足。虽然带有一定的迷信色彩，但其中也包含合理的建筑环境选择经验。'},{keywords:['坐北朝南','为什么朝南'],answer:'坐北朝南的原因包括：1) 采光充足，冬季阳光充足；2) 避风，北方寒风从北方吹来，坐北朝南可以避风；3) 符合风水理论，"负阴抱阳"；4) 等级制度，只有皇帝和重要建筑可以坐北朝南。'},{keywords:['榫卯','榫卯结构'],answer:'榫卯是中国传统木结构建筑的核心连接方式，不用钉子和胶水就能牢固连接。"榫"是凸出的部分，"卯"是凹入的部分，两者紧密结合。榫卯结构是中国古代工匠智慧的结晶，体现了高超的木工技艺。'},{keywords:['榫卯优点','榫卯好处'],answer:'榫卯结构的优点包括：1) 结构稳固，抗震性能好；2) 可以适应温度和湿度变化，木材不易开裂；3) 便于拆卸和维修；4) 节省材料，无需钉子和胶水；5) 外观美观，结构精巧。'},{keywords:['园林建筑','园林特点','园林建筑特点','园林建筑特色'],answer:'园林建筑是中国传统建筑的重要类型，强调"虽由人作，宛自天开"的意境。特点包括：布局自由灵活，不拘泥于对称；运用借景、框景、漏景等手法；有亭、台、楼、阁、廊、榭等多种建筑形式；水景与假山巧妙结合，营造诗情画意的意境。著名园林有苏州拙政园、留园、狮子林等。'},{keywords:['苏州园林','苏州','拙政园','留园'],answer:'苏州园林是中国古典园林的杰出代表，具有以下特点：1) 布局精巧，以小见大；2) 假山池沼，移步换景；3) 亭台楼阁，错落有致；4) 花木扶疏，四季皆有景。著名的有拙政园、留园、狮子林等。苏州园林被列入世界文化遗产名录。'},{keywords:['民居建筑','民居特点','民居有哪些'],answer:'中国民居建筑因地而异，主要类型有：北方四合院、南方天井式民居、山区吊脚楼、黄土高原窑洞、客家土楼、徽派建筑（马头墙）、蒙古包、傣族竹楼、藏族碉房等。这些民居都体现了当地人民与自然环境的和谐共处。'}];
+const presetConversations=[{question:'你太棒了',answer:'谢谢你！'},{question:'你真棒',answer:'谢谢你！'},{question:'太厉害了',answer:'谢谢你！'},{question:'回答正确',answer:'谢谢你！'},{question:'说对了',answer:'谢谢你！'},{question:'谢谢你',answer:'不客气！'},{question:'谢谢',answer:'不客气！'},{question:'你好',answer:'你好！我是中国古代建筑知识助手，有什么我可以帮你的吗？'},{question:'你好啊',answer:'你好！很高兴见到你，有什么想了解的建筑知识吗？'},{question:'你是谁',answer:'我是中国古代建筑电子博物馆的智能助手，专门为你介绍中国古代建筑的知识！'},{question:'你是谁呀',answer:'我是建筑知识助手，可以帮你了解各种中国古代建筑的特点和历史！'},{question:'再见',answer:'再见！欢迎你下次再来学习！'},{question:'拜拜',answer:'拜拜！祝你生活愉快！'}];
+const qaQuestions=qaDatabase.map(i=>i.keywords[0]),qaAnswers=qaDatabase.map(i=>i.answer);
+chatbot.initialize(qaQuestions,qaAnswers);
+function toggleChatWindow(){var w=document.getElementById('chatbotWindow');w.style.display=(w.style.display==='none'||w.style.display==='')?'flex':'none';}
+function addChatMessage(t,u){var c=document.getElementById('chatbotContent'),d=document.createElement('div');d.style.cssText='margin-bottom:16px;display:flex;align-items:flex-start;gap:10px;';d.innerHTML=u?'<div style="flex:1;"></div><div style="background:#d97706;color:white;padding:12px 16px;border-radius:18px 18px 4px 18px;max-width:80%;">'+t+'</div>':'<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#92400e,#d97706);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-robot" style="color:white;font-size:16px;"></i></div><div style="background:#f3f4f6;padding:12px 16px;border-radius:18px 18px 18px 4px;max-width:80%;">'+t+'</div>';c.appendChild(d);c.scrollTop=c.scrollHeight;}
+var waitingForAnswer=null,lastAskedQuestion=null;
+function getUserLearnedAnswers(){try{var s=localStorage.getItem('chatbot_user_learned');if(s)return JSON.parse(s);}catch(e){}return[];}
+function saveUserLearned(q,a){try{var l=getUserLearnedAnswers(),i=l.findIndex(e=>e[0]===q);i>=0?l[i][1]=a:l.push([q,a]);localStorage.setItem('chatbot_user_learned',JSON.stringify(l));}catch(e){}}
+function levenshtein(a,b){var m=a.length,n=b.length;if(m===0)return n;if(n===0)return m;var dp=[],i,j;for(i=0;i<=m;i++){dp[i]=[i];}for(j=0;j<=n;j++){dp[0][j]=j;}for(i=1;i<=m;i++){for(j=1;j<=n;j++){if(a[i-1]===b[j-1]){dp[i][j]=dp[i-1][j-1];}else{dp[i][j]=1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);}}}return dp[m][n];}function editSimilarity(a,b){if(!a||!b)return 0;if(a===b)return 1;var m=Math.max(a.length,b.length);return 1-levenshtein(a,b)/m;}function toBigrams(s){var bg=new Set(),i;for(i=0;i<s.length-1;i++){bg.add(s.substring(i,i+2));}return bg;}function diceSimilarity(a,b){var ba=toBigrams(a),bb=toBigrams(b);if(ba.size===0&&bb.size===0)return 0;var isct=0,x;for(x of ba){if(bb.has(x))isct++;}return(2*isct)/(ba.size+bb.size);}function removeStopWords(s){var sw=['的','了','吗','呢','吧','呀','啊','么','什么','有哪些','哪些','怎样','如何','为什么','是不是','请问','请','告诉我','我想','知道','一下','这个','那个','讲讲','介绍','说说','是什么','什么是','可以','能不能','给我','帮我','我','你','它','他','她','关于','有关','来说','特点有','特点是','具体','详细','说明'];sw.sort(function(a,b){return b.length-a.length;});var r=s;for(var j=0;j<sw.length;j++){r=r.split(sw[j]).join('');}return r.replace(/[，,.。!！?？\s、：:；;（）()「」『』""''【】《》—\-…·~～|\/\\]/g,'').trim();}function findAnswerByKeywords(q){var rawQ=q.toLowerCase().trim();var cleanQ=removeStopWords(rawQ);var i,j,ul=getUserLearnedAnswers(),sv;for(i=0;i<ul.length;i++){sv=ul[i][0].toLowerCase().trim();if(sv===rawQ)return ul[i][1];}for(i=0;i<ul.length;i++){sv=ul[i][0].toLowerCase().trim();if(rawQ.indexOf(sv)!==-1||sv.indexOf(rawQ)!==-1)return ul[i][1];if(sv.length>=3&&cleanQ.length>=3&&editSimilarity(cleanQ,sv)>=0.75)return ul[i][1];}for(i=0;i<presetConversations.length;i++){var pc=presetConversations[i];if(rawQ.indexOf(pc.question.toLowerCase())!==-1||pc.question.indexOf(rawQ)!==-1)return pc.answer;}var bm=null,bs=0,item,sc,kw;for(i=0;i<qaDatabase.length;i++){item=qaDatabase[i];sc=0;for(j=0;j<item.keywords.length;j++){kw=item.keywords[j].toLowerCase();if(cleanQ.indexOf(kw)!==-1)sc+=kw.length*14;else if(kw.indexOf(cleanQ)!==-1&&cleanQ.length>=2)sc+=cleanQ.length*12;if(rawQ.indexOf(kw)!==-1)sc+=kw.length*11;else if(kw.indexOf(rawQ)!==-1&&rawQ.length>=2)sc+=rawQ.length*9;if(cleanQ.length>=3&&kw.length>=3){var es=editSimilarity(cleanQ,kw);if(es>=0.8)sc+=kw.length*10*es;else if(es>=0.7)sc+=kw.length*7*es;else if(es>=0.55)sc+=kw.length*4*es;}if(cleanQ.length>=3&&kw.length>=3){var ds=diceSimilarity(cleanQ,kw);if(ds>=0.6)sc+=kw.length*7*ds;else if(ds>=0.45)sc+=kw.length*4*ds;else if(ds>=0.3)sc+=kw.length*2*ds;}var ml=Math.min(cleanQ.length,kw.length,6),ln,x;for(ln=2;ln<=ml;ln++){for(x=0;x<=cleanQ.length-ln;x++){var sub=cleanQ.substring(x,x+ln);if(kw.indexOf(sub)!==-1)sc+=sub.length*2;}}}if(sc>bs){bs=sc;bm=item;}}if(bm&&bs>=18)return bm.answer;var ws=rawQ.replace(/[吗呢吧呀啊么有什么|哪些|怎样|如何|为什么|是不是怎请问告诉我]/g,'').split(/[,，.。!！?？\s、，：；（）()]/).filter(function(w){return w.length>=2;});if(ws.length>0){bm=null;bs=0;for(i=0;i<qaDatabase.length;i++){item=qaDatabase[i];sc=0;var al=item.answer.toLowerCase();for(j=0;j<ws.length;j++){var w=ws[j];if(al.indexOf(w)!==-1)sc+=w.length*4;}if(sc>bs){bs=sc;bm=item;}}if(bm&&bs>=6)return bm.answer;}return null;}
+function chatSend(){var i=document.getElementById('chatInput'),t=i.value.trim();if(!t)return;addChatMessage(t,true);i.value='';if(waitingForAnswer){saveUserLearned(waitingForAnswer,t);addChatMessage('太好了！我记住了！谢谢你的教导！以后再问我这个问题，我就能回答了！');waitingForAnswer=null;return;}var cp=['不对','不是','错了','不正确','错误','错啦','不是的','不对不对','有问题','不对吧','不准'];var correct=false;for(var p of cp){if(t.includes(p)){correct=true;break;}}if(correct&&lastAskedQuestion){addChatMessage('抱歉我说错了！<br><br>你能告诉我正确的答案是什么吗？');waitingForAnswer=lastAskedQuestion;return;}setTimeout(function(){var a=findAnswerByKeywords(t);if(a){lastAskedQuestion=t;addChatMessage(a);}else{addChatMessage('抱歉，我暂时不知道这个问题的答案。<br><br>你能教教我吗？请告诉我正确的答案～');waitingForAnswer=t;lastAskedQuestion=t;}},500);}
+document.addEventListener('DOMContentLoaded',function(){var i=document.getElementById('chatInput');if(i)i.addEventListener('keypress',function(e){if(e.key==='Enter')chatSend();});});
+</script>
+<script src="qa-expanded.js"></script>
+
+<!-- 时间轴交互脚本 -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var tl = document.getElementById('timelineScroll');
+    if (!tl) return;
+
+    var items = tl.querySelectorAll('.timeline-item');
+    var dots = document.querySelectorAll('#timelineDots .timeline-dot');
+    var playBtn = document.getElementById('timelinePlayBtn');
+    var playIcon = document.getElementById('timelinePlayIcon');
+    var total = items.length;
+    if (!total) return;
+
+    var isPlaying = true;
+    var intervalId = null;
+    var speed = 1;  // 每次步进1px，每50ms一次 = 20px/秒
+
+    function startLoop() {
+        if (intervalId) return;
+        intervalId = setInterval(function() {
+            if (!isPlaying) return;
+            var max = tl.scrollWidth - tl.clientWidth;
+            if (max <= 0) return;
+            tl.scrollLeft += speed;
+            if (tl.scrollLeft >= max) {
+                stopLoop();
+                // 平滑滚回最左边
+                tl.scrollTo({ left: 0, behavior: 'smooth' });
+                // 滚动结束后恢复自动播放
+                setTimeout(function() {
+                    syncDots();
+                    if (isPlaying) startLoop();
+                }, 800);
+            }
+            syncDots();
+        }, 50);
+    }
+
+    function stopLoop() {
+        if (intervalId) { clearInterval(intervalId); intervalId = null; }
+    }
+
+    function setPlaying(state) {
+        isPlaying = state;
+        if (playBtn && playIcon) {
+            if (isPlaying) {
+                playIcon.className = 'fa-solid fa-pause';
+                playBtn.title = '暂停自动滚动';
+                playBtn.style.borderColor = '#b45309';
+                playBtn.style.background = '#fffbeb';
+                playBtn.style.color = '#b45309';
+            } else {
+                playIcon.className = 'fa-solid fa-play';
+                playBtn.title = '开启自动滚动';
+                playBtn.style.borderColor = '#d6d3d1';
+                playBtn.style.background = 'white';
+                playBtn.style.color = '#78716c';
+            }
+        }
+        if (isPlaying) startLoop(); else stopLoop();
+    }
+
+    function snapToItem(idx) {
+        var i = ((idx % total) + total) % total;
+        var it = items[i];
+        if (!it) return;
+        var target = it.offsetLeft - 20;  // 卡片贴左边显示
+        tl.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+        syncDots();
+    }
+
+    function syncDots() {
+        var best = 0, bestDist = Infinity;
+        var ctr = tl.getBoundingClientRect();
+        var leftX = ctr.left + 20;  // 左边对齐判断
+        for (var i = 0; i < total; i++) {
+            var r = items[i].getBoundingClientRect();
+            var d = Math.abs(r.left - leftX);
+            if (d < bestDist) { bestDist = d; best = i; }
+        }
+        for (var j = 0; j < dots.length; j++) {
+            dots[j].classList.toggle('active', j === best);
+        }
+    }
+
+    // 全局暴露 — 必须在 DOMContentLoaded 内赋值
+    window.toggleTimelinePlay = function() { setPlaying(!isPlaying); };
+    window.updateTimelineDots = syncDots;
+    window.scrollTimeline = function(dir) {
+        setPlaying(false);
+        var best = 0, bestDist = Infinity;
+        var ctr = tl.getBoundingClientRect();
+        var leftX = ctr.left + 20;
+        for (var i = 0; i < total; i++) {
+            var r = items[i].getBoundingClientRect();
+            var d = Math.abs(r.left - leftX);
+            if (d < bestDist) { bestDist = d; best = i; }
+        }
+        snapToItem(best + dir);
+    };
+    window.scrollToTimelineItem = function(idx) {
+        setPlaying(false);
+        snapToItem(idx);
+    };
+
+    // hover暂停/离开恢复
+    tl.addEventListener('mouseenter', stopLoop);
+    tl.addEventListener('mouseleave', function() {
+        syncDots();
+        if (isPlaying) startLoop();
+    });
+
+    // 键盘
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowLeft') { e.preventDefault(); scrollTimeline(-1); }
+        if (e.key === 'ArrowRight') { e.preventDefault(); scrollTimeline(1); }
+    });
+
+    syncDots();
+    startLoop();
+});
+</script>
+
+<!-- 机器人脚本 -->
+
+</body>
+</html>

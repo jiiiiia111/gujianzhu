@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>园林建筑 - 中国古典建筑电子博物馆</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: #f9fafb; }
+        .card-hover { transition: 0.3s; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.08); }
+        .title-line { width: 60px; height: 3px; background: #065f46; }
+        
+        /* 文字特效 */
+        .text-gradient {
+            background: linear-gradient(90deg, #10b981, #ffffff, #10b981);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textShine 3s linear infinite;
+        }
+        @keyframes textShine {
+            0% { background-position: 0%; }
+            100% { background-position: 200%; }
+        }
+        .fade-in {
+            animation: fadeIn 1.2s ease forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 导航栏 -->
+<header class="bg-stone-900 text-white sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-building-columns text-2xl text-amber-500"></i>
+            <span class="text-xl font-bold">中国古典建筑电子博物馆</span>
+        </div>
+        <nav class="hidden md:flex gap-8">
+            <a href="index.html" class="hover:text-amber-400 transition">首页</a>
+            <a href="knowledge-建筑知识.html" class="text-amber-400 font-medium">建筑知识</a>
+            <a href="shuzitujian-数字图鉴.html" class="hover:text-amber-400 transition">代表建筑</a>
+            <a href="exhibition-数字展厅.html" class="hover:text-amber-400 transition">数字展厅</a>
+            <a href="3d-building.html" class="hover:text-amber-400 transition">3D课堂</a>
+            <a href="quiz-challenge-闯关测验.html" class="hover:text-amber-400 transition">闯关测验</a>
+            <a href="aboutus-关于我们.html" class="hover:text-amber-400 transition">关于我们</a>
+        </nav>
+    </div>
+</header>
+
+<!-- 头部banner -->
+<section class="relative h-64 bg-cover bg-center flex items-center justify-center text-white" style="background-image: url('图片/拙政园-1.jpg');">
+    <div class="absolute w-full h-full bg-black/50"></div>
+    <div class="relative z-10 text-center px-4 fade-in">
+        <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gradient">园林建筑</h1>
+        <p class="text-lg opacity-90">山水意境 · 移步换景 · 虽由人作 宛自天开</p>
+    </div>
+</section>
+
+<!-- 内容区 -->
+<main class="max-w-4xl mx-auto px-4 py-12">
+    <div class="bg-white rounded-2xl shadow-lg p-8 fade-in">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="title-line"></div>
+            <h2 class="text-2xl font-bold text-stone-800">园林建筑概述</h2>
+        </div>
+
+        <img src="图片/留园-1.jpg" class="rounded-lg w-full h-72 object-cover mb-6" alt="园林建筑">
+        
+        <p class="text-gray-700 leading-8 mb-4">
+            园林建筑是中国古典建筑的艺术瑰宝，融合自然山水、花木植被与亭台楼阁，追求“天人合一”的诗意境界，是文人雅士精神寄托的空间。
+        </p>
+        <p class="text-gray-700 leading-8 mb-4">
+            它讲究曲折幽深、小中见大、借景对景，一步一景，一景一画，体现中国人的自然哲学与审美情趣。
+        </p>
+
+        <div class="flex items-center gap-3 mb-6 mt-10">
+            <div class="title-line"></div>
+            <h2 class="text-2xl font-bold text-stone-800">典型特点</h2>
+        </div>
+
+        <ul class="list-disc pl-5 space-y-2 text-gray-700 leading-8">
+            <li>山水相依，曲折布局，营造自然意境</li>
+            <li>亭、台、楼、阁、廊、榭、轩、舫精巧雅致</li>
+            <li>移步换景、小中见大、借景对景，层次丰富</li>
+            <li>白墙黛瓦、雕花木窗、楹联匾额，文人气息浓厚</li>
+            <li>四季有景，动静结合，诗情画意</li>
+        </ul>
+
+        <div class="flex items-center gap-3 mb-6 mt-10">
+            <div class="title-line"></div>
+            <h2 class="text-2xl font-bold text-stone-800">代表建筑</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div class="bg-stone-50 p-4 rounded-xl card-hover">
+                <h3 class="font-bold text-emerald-800 mb-2">苏州园林</h3>
+                <p class="text-sm text-gray-700">世界文化遗产，江南园林巅峰之作。</p>
+            </div>
+            <div class="bg-stone-50 p-4 rounded-xl card-hover">
+                <h3 class="font-bold text-emerald-800 mb-2">颐和园</h3>
+                <p class="text-sm text-gray-700">皇家园林之最，气势恢宏又雅致清幽。</p>
+            </div>
+            <div class="bg-stone-50 p-4 rounded-xl card-hover">
+                <h3 class="font-bold text-emerald-800 mb-2">拙政园</h3>
+                <p class="text-sm text-gray-700">苏州最大古典园林，意境深远。</p>
+            </div>
+            <div class="bg-stone-50 p-4 rounded-xl card-hover">
+                <h3 class="font-bold text-emerald-800 mb-2">留园</h3>
+                <p class="text-sm text-gray-700">小巧精致，移步换景，布局绝妙。</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-center mt-8">
+        <a href="index.html" class="inline-flex items-center gap-2 bg-stone-800 text-white px-8 py-3 rounded-lg hover:bg-stone-700 transition">
+            <i class="fa-solid fa-arrow-left"></i> 返回首页
+        </a>
+    </div>
+</main>
+
+<!-- 页脚 -->
+<footer class="bg-stone-900 text-white py-8 text-center fade-in">
+    <p>© 2025 中国古典建筑电子博物馆 版权所有</p>
+    <p class="text-gray-400 text-sm mt-2">传承中华建筑文化 · 数字博物馆</p>
+</footer>
+
+</body>
+</html>

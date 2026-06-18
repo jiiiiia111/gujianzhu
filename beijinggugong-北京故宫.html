@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>北京故宫 - 中国古典建筑电子博物馆</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: #f9fafb; }
+        .card-hover { transition: 0.3s; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.08); }
+        .title-line { width: 60px; height: 3px; background: #d97706; }
+        .text-gradient { background: linear-gradient(90deg, #d97706, #ffffff, #d97706); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: textShine 3s linear infinite; }
+        @keyframes textShine { 0% { background-position: 0%; } 100% { background-position: 200%; } }
+        .fade-in { animation: fadeIn 1.2s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<header class="bg-stone-900 text-white sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-building-columns text-2xl text-amber-500"></i>
+            <span class="text-xl font-bold">中国古典建筑电子博物馆</span>
+        </div>
+        <nav class="hidden md:flex gap-8">
+            <a href="index.html" class="hover:text-amber-400 transition">首页</a>
+            <a href="knowledge-建筑知识.html" class="text-amber-400 font-medium">建筑知识</a>
+            <a href="shuzitujian-数字图鉴.html" class="hover:text-amber-400 transition">代表建筑</a>
+            <a href="exhibition-数字展厅.html" class="hover:text-amber-400 transition">数字展厅</a>
+            <a href="3d-building.html" class="hover:text-amber-400 transition">3D课堂</a>
+            <a href="quiz-challenge-闯关测验.html" class="hover:text-amber-400 transition">闯关测验</a>
+            <a href="aboutus-关于我们.html" class="hover:text-amber-400 transition">关于我们</a>
+        </nav>
+    </div>
+</header>
+
+<section class="relative h-64 bg-cover bg-center flex items-center justify-center text-white" style="background-image: url('图片/故宫-2.jpg');">
+    <div class="absolute w-full h-full bg-black/50"></div>
+    <div class="relative z-10 text-center px-4 fade-in">
+        <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gradient">北京故宫</h1>
+        <p class="text-lg opacity-90">世界现存最大皇家宫殿 · 华夏建筑巅峰</p>
+    </div>
+</section>
+
+<main class="max-w-4xl mx-auto px-4 py-12">
+    <div class="bg-white rounded-2xl shadow-lg p-8 fade-in">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="title-line"></div>
+            <h2 class="text-2xl font-bold text-stone-800">建筑概况</h2>
+        </div>
+        <img src="图片/故宫-1.png" class="rounded-lg w-full h-72 object-cover mb-6" alt="北京故宫">
+        <p class="text-gray-700 leading-8 mb-4">北京故宫，旧称紫禁城，位于北京中轴线中心，是明清两代的皇家宫殿，也是世界上现存规模最大、保存最完整的木质结构古建筑群。</p>
+        <p class="text-gray-700 leading-8 mb-4">始建于明永乐四年至十八年（1406—1420年），占地面积约72万平方米，房屋约9000余间，被誉为“殿宇之海”。1987年被列入世界文化遗产名录。</p>
+
+        <div class="flex items-center gap-3 mb-6 mt-10">
+            <div class="title-line"></div>
+            <h2 class="text-2xl font-bold text-stone-800">建筑特色</h2>
+        </div>
+        <ul class="list-disc pl-5 space-y-2 text-gray-700 leading-8">
+            <li>严格中轴对称布局，气势庄严，秩序井然</li>
+            <li>黄色琉璃瓦、朱红宫墙、金色彩绘，象征皇权至高无上</li>
+            <li>三大殿：太和殿、中和殿、保和殿，为最高等级建筑</li>
+            <li>全木结构，不用一根铁钉，抗震能力极强</li>
+            <li>前朝后寝、左祖右社，完美体现中国古代礼制思想</li>
+        </ul>
+
+        <div class="flex items-center gap-3 mb-6 mt-10">
+            <div class="title-line"></div>
+            <h2 class="text-2xl font-bold text-stone-800">文化价值</h2>
+        </div>
+        <p class="text-gray-700 leading-8">故宫不仅是中国古代宫殿建筑的集大成者，更是中华文明的重要象征，集政治、历史、文化、艺术于一体，是全人类的珍贵文化遗产。</p>
+    </div>
+    
+    <div class="text-center mt-8">
+        <a href="shuzitujian-数字图鉴.html" class="inline-flex items-center gap-2 bg-stone-800 text-white px-8 py-3 rounded-lg hover:bg-stone-700 transition">
+            <i class="fa-solid fa-arrow-left"></i> 返回代表建筑
+        </a>
+    </div>
+</main>
+
+<footer class="bg-stone-900 text-white py-8 text-center fade-in">
+    <p>© 2025 中国古典建筑电子博物馆 版权所有</p>
+</footer>
+
+<!-- ==================== Lightbox 图片放大 ==================== -->
+<style>
+.gallery-img { cursor: zoom-in; transition: opacity 0.2s; }
+.gallery-img:hover { opacity: 0.92; }
+#lightbox-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.92); z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+#lightbox-overlay.active { opacity: 1; pointer-events: auto; }
+#lightbox-overlay img {
+    max-width: 90vw; max-height: 85vh; object-fit: contain;
+    transform-origin: center center; transition: transform 0.08s ease-out;
+    user-select: none; -webkit-user-drag: none;
+}
+.lb-btn {
+    position: absolute; background: rgba(255,255,255,0.12); color: #fff;
+    border: 1px solid rgba(255,255,255,0.25); cursor: pointer;
+    border-radius: 50%; width: 48px; height: 48px; font-size: 20px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; z-index: 10; backdrop-filter: blur(4px);
+}
+.lb-btn:hover { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.5); transform: scale(1.08); }
+#lb-close { top: 18px; right: 18px; font-size: 22px; }
+#lb-prev { left: 18px; top: 50%; transform: translateY(-50%); }
+#lb-prev:hover { transform: translateY(-50%) scale(1.08); }
+#lb-next { right: 18px; top: 50%; transform: translateY(-50%); }
+#lb-next:hover { transform: translateY(-50%) scale(1.08); }
+#lb-counter { position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+    color: #fff; background: rgba(0,0,0,0.55); padding: 5px 18px; border-radius: 20px;
+    font-size: 13px; letter-spacing: 1px; pointer-events: none; }
+.lb-spinner { border: 3px solid rgba(255,255,255,0.2); border-top-color: #fff;
+    border-radius: 50%; width: 38px; height: 38px; animation: lbSpin 0.6s linear infinite;
+    position: absolute; z-index: 5; }
+@keyframes lbSpin { to { transform: rotate(360deg); } }
+@media (max-width: 768px) {
+    .lb-btn { width: 38px; height: 38px; font-size: 16px; }
+    #lb-close { top: 12px; right: 12px; }
+    #lb-prev { left: 8px; } #lb-next { right: 8px; }
+}
+</style>
+
+<div id="lightbox-overlay">
+    <button class="lb-btn" id="lb-close" title="关闭 (Esc)">✕</button>
+    <button class="lb-btn" id="lb-prev" title="上一张 (←)">◀</button>
+    <button class="lb-btn" id="lb-next" title="下一张 (→)">▶</button>
+    <div id="lb-counter"></div>
+    <div class="lb-spinner" id="lb-spinner" style="display:none"></div>
+    <img id="lb-img" src="" alt="">
+</div>
+
+<script>
+(function() {
+    var overlay = document.getElementById('lightbox-overlay');
+    var lbImg = document.getElementById('lb-img');
+    var spinner = document.getElementById('lb-spinner');
+    var counter = document.getElementById('lb-counter');
+    var images = [];
+    var currentIdx = 0;
+    var scale = 1, offsetX = 0, offsetY = 0;
+    var isDragging = false, dragStartX, dragStartY, startOffX, startOffY;
+
+    // 自动收集 <main> 内所有 <img> 作为图库
+    var mainImgs = document.querySelectorAll('main img');
+    mainImgs.forEach(function(img, i) {
+        images.push({ src: img.src, alt: img.alt || '图片' });
+        img.classList.add('gallery-img');
+        img.title = '点击放大';
+        img.addEventListener('click', function(e) { e.preventDefault(); openLightbox(i); });
+    });
+
+    if (!images.length) return;
+
+    function openLightbox(idx) {
+        currentIdx = idx;
+        resetZoom();
+        loadImage();
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+        resetZoom();
+    }
+
+    function loadImage() {
+        var item = images[currentIdx];
+        spinner.style.display = 'block';
+        lbImg.style.opacity = '0';
+        lbImg.src = item.src;
+        lbImg.alt = item.alt;
+        counter.textContent = (currentIdx + 1) + ' / ' + images.length;
+        lbImg.onload = function() {
+            spinner.style.display = 'none';
+            lbImg.style.opacity = '1';
+        };
+    }
+
+    function prevImage() { currentIdx = (currentIdx - 1 + images.length) % images.length; resetZoom(); loadImage(); }
+    function nextImage() { currentIdx = (currentIdx + 1) % images.length; resetZoom(); loadImage(); }
+
+    function applyTransform() {
+        lbImg.style.transform = 'scale(' + scale + ') translate(' + offsetX + 'px,' + offsetY + 'px)';
+        lbImg.style.cursor = scale > 1.05 ? (isDragging ? 'grabbing' : 'grab') : 'zoom-in';
+    }
+
+    function resetZoom() { scale = 1; offsetX = 0; offsetY = 0; applyTransform(); }
+
+    // 滚轮缩放
+    lbImg.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        if (!overlay.classList.contains('active')) return;
+        var rect = lbImg.getBoundingClientRect();
+        var mx = e.clientX - rect.left - rect.width / 2;
+        var my = e.clientY - rect.top - rect.height / 2;
+        var old = scale;
+        scale += e.deltaY < 0 ? 0.25 : -0.25;
+        scale = Math.max(0.5, Math.min(5, scale));
+        offsetX += mx * (1 / old - 1 / scale);
+        offsetY += my * (1 / old - 1 / scale);
+        applyTransform();
+    }, { passive: false });
+
+    // 双击切缩放
+    lbImg.addEventListener('dblclick', function(e) {
+        e.preventDefault();
+        if (scale > 1.1) resetZoom(); else { scale = 2.8; offsetX = 0; offsetY = 0; applyTransform(); }
+    });
+
+    // 拖拽
+    lbImg.addEventListener('mousedown', function(e) {
+        if (scale <= 1.05) return;
+        isDragging = true;
+        dragStartX = e.clientX; dragStartY = e.clientY;
+        startOffX = offsetX; startOffY = offsetY;
+        applyTransform();
+        e.preventDefault();
+    });
+
+    window.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+        offsetX = startOffX + (e.clientX - dragStartX) / scale;
+        offsetY = startOffY + (e.clientY - dragStartY) / scale;
+        applyTransform();
+    });
+
+    window.addEventListener('mouseup', function() {
+        if (isDragging) { isDragging = false; applyTransform(); }
+    });
+
+    // 双指缩放 (触摸)
+    var touchDist0 = 0, touchScale0 = 1;
+    lbImg.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 2) {
+            touchDist0 = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            touchScale0 = scale;
+        }
+    });
+    lbImg.addEventListener('touchmove', function(e) {
+        if (e.touches.length === 2) {
+            e.preventDefault();
+            var d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            scale = Math.max(0.5, Math.min(5, touchScale0 * d / touchDist0));
+            applyTransform();
+        }
+    }, { passive: false });
+
+    // 按钮
+    document.getElementById('lb-close').addEventListener('click', closeLightbox);
+    document.getElementById('lb-prev').addEventListener('click', function(e) { e.stopPropagation(); prevImage(); });
+    document.getElementById('lb-next').addEventListener('click', function(e) { e.stopPropagation(); nextImage(); });
+
+    // 点遮罩关
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) closeLightbox();
+    });
+
+    // 键盘
+    document.addEventListener('keydown', function(e) {
+        if (!overlay.classList.contains('active')) return;
+        if (e.key === 'Escape') { e.preventDefault(); closeLightbox(); }
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); prevImage(); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); nextImage(); }
+    });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能百科搜索 - 中国古代建筑电子博物馆</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #92400e 0%, #d97706 100%); color: white; padding: 30px; text-align: center; }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .search-box { padding: 30px; background: #f9fafb; }
+        .input-group { display: flex; gap: 10px; }
+        #searchInput { flex: 1; padding: 15px 20px; border: 2px solid #d1d5db; border-radius: 10px; font-size: 16px; }
+        #searchBtn { padding: 15px 30px; background: linear-gradient(135deg, #92400e 0%, #d97706 100%); color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; }
+        #searchBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .result-area { padding: 30px; min-height: 300px; }
+        .loading { text-align: center; padding: 40px; color: #6b7280; }
+        .result-card { background: #fef3c7; border-left: 4px solid #d97706; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .result-title { font-size: 20px; color: #92400e; margin-bottom: 15px; font-weight: bold; }
+        .result-content { font-size: 16px; line-height: 1.8; color: #374151; margin-bottom: 15px; max-height: 400px; overflow-y: auto; white-space: pre-wrap; }
+        .error-message { background: #fee2e2; border-left: 4px solid #ef4444; padding: 20px; border-radius: 10px; color: #991b1b; }
+        .success-message { background: #d1fae5; border-left: 4px solid #10b981; padding: 15px; border-radius: 8px; color: #065f46; margin-top: 15px; }
+        .btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: bold; margin-right: 10px; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-secondary { background: #6b7280; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 智能百科搜索引擎</h1>
+            <p>基于数据挖掘技术 · 自动提取百度百科内容 · Supabase云端存储</p>
+        </div>
+
+        <div class="search-box">
+            <div class="input-group">
+                <input type="text" id="searchInput" placeholder="输入搜索关键词，例如：营造法式" />
+                <button id="searchBtn" onclick="performSearch()">搜索</button>
+            </div>
+        </div>
+
+        <div class="result-area" id="resultArea">
+            <div style="text-align: center; padding: 60px 20px; color: #9ca3af;">
+                <div style="font-size: 64px; margin-bottom: 20px;">🔎</div>
+                <div style="font-size: 18px;">输入关键词开始智能搜索</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                alert('请输入搜索关键词');
+                return;
+            }
+
+            const btn = document.getElementById('searchBtn');
+            const resultArea = document.getElementById('resultArea');
+
+            btn.disabled = true;
+            resultArea.innerHTML = '<div class="loading"><div style="font-size: 48px; margin-bottom: 20px;">⏳</div><div>正在智能搜索中...</div></div>';
+
+            try {
+                // 尝试多个代理服务
+                const proxies = [
+                    `https://r.jina.ai/http://baike.baidu.com/item/${encodeURIComponent(query)}`,
+                    `https://r.jina.ai/https://baike.baidu.com/item/${encodeURIComponent(query)}`
+                ];
+
+                let text = null;
+
+                for (let i = 0; i < proxies.length; i++) {
+                    try {
+                        console.log(`[尝试代理 ${i + 1}]`, proxies[i]);
+
+                        const controller = new AbortController();
+                        const timeout = setTimeout(() => controller.abort(), 30000);
+
+                        const res = await fetch(proxies[i], { signal: controller.signal });
+                        clearTimeout(timeout);
+
+                        if (!res.ok) {
+                            console.warn(`[代理 ${i + 1} 失败] HTTP ${res.status}`);
+                            continue;
+                        }
+
+                        const data = await res.text();
+
+                        if (data && data.length > 200) {
+                            text = data;
+                            console.log(`[代理 ${i + 1} 成功] 长度:`, data.length);
+                            break;
+                        }
+                    } catch (e) {
+                        console.warn(`[代理 ${i + 1} 错误]`, e.message);
+                        continue;
+                    }
+                }
+
+                if (!text) {
+                    resultArea.innerHTML = `
+                        <div class="error-message">
+                            <strong>❌ 搜索失败</strong><br>
+                            抱歉，无法连接到百度百科服务器。<br><br>
+                            💡 建议：请检查网络连接后重试
+                        </div>
+                    `;
+                    btn.disabled = false;
+                    return;
+                }
+
+                // 清理文本
+                const cleaned = text
+                    .replace(/\[.*?\]/g, '')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+
+                // 提取前1000字
+                const extractedContent = cleaned.substring(0, 1000).trim();
+
+                // 显示结果
+                resultArea.innerHTML = `
+                    <div class="result-card">
+                        <div class="result-title">📖 ${query}</div>
+                        <div class="result-content">${extractedContent}</div>
+                        <div style="margin-top: 15px;">
+                            <a href="https://baike.baidu.com/item/${encodeURIComponent(query)}" target="_blank"
+                               style="color: #92400e; font-weight: bold;">
+                                🔗 查看完整百度百科条目
+                            </a>
+                        </div>
+                        <div class="action-buttons" style="margin-top: 20px;">
+                            <button class="btn btn-success" onclick="alert('功能开发中：保存到知识库')">
+                                ✅ 保存到知识库
+                            </button>
+                            <button class="btn btn-secondary" onclick="performSearch()">
+                                🔄 重新搜索
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error('[搜索错误]', error);
+                resultArea.innerHTML = `
+                    <div class="error-message">
+                        <strong>❌ 搜索出错</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // 回车搜索
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+    </script>
+</body>
+</html>
